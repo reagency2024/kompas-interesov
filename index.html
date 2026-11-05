@@ -1,0 +1,482 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Компас интересов</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Golos+Text:wght@400;500;600&display=swap">
+<style>
+/* Layout: one narrow column, app-like; three screens (start, question, results) swap in place. Holland hexagon is the visual signature. */
+:root {
+  --bg: #EEF2F1;
+  --surface: #FFFFFF;
+  --ink: #18222A;
+  --muted: #5A6872;
+  --line: #D5DEDC;
+  --accent: #0E6B63;
+  --accent-ink: #FFFFFF;
+  --accent-soft: #D7ECE8;
+  --R: #B85A2E; --I: #2B66AA; --A: #8E46A6; --S: #24855C; --E: #B7820F; --C: #55657A;
+  --font-display: "Unbounded", "Arial Black", system-ui, sans-serif;
+  --font-body: "Golos Text", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --radius: 14px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111A1E; --surface: #19242A; --ink: #E7EEEC; --muted: #9AABB0; --line: #2B3A40;
+    --accent: #43B3A6; --accent-ink: #0B1513; --accent-soft: #1D3A37;
+    --R: #E28A5E; --I: #6FA3E3; --A: #C185DA; --S: #5CC293; --E: #E2B54C; --C: #98A8BC;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111A1E; --surface: #19242A; --ink: #E7EEEC; --muted: #9AABB0; --line: #2B3A40;
+  --accent: #43B3A6; --accent-ink: #0B1513; --accent-soft: #1D3A37;
+  --R: #E28A5E; --I: #6FA3E3; --A: #C185DA; --S: #5CC293; --E: #E2B54C; --C: #98A8BC;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { min-height: 100%; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: var(--font-body); font-size: 16px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 40px;
+}
+.wrap { max-width: 560px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; line-height: 1.2; }
+h1 { font-size: clamp(26px, 7vw, 34px); font-weight: 700; }
+h2 { font-size: 20px; font-weight: 700; }
+h3 { font-size: 16px; font-weight: 500; }
+p { margin: 0; }
+.muted { color: var(--muted); }
+.eyebrow { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+.btn {
+  appearance: none; border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+  font: 600 16px/1.2 var(--font-body); padding: 14px 18px; border-radius: 12px; cursor: pointer;
+  transition: transform .08s ease, background .15s ease, border-color .15s ease;
+}
+.btn:active { transform: scale(.98); }
+.btn:focus-visible, input:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn.ghost { background: transparent; border-color: transparent; color: var(--muted); padding-inline: 8px; }
+.btn:disabled { opacity: .4; cursor: default; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; }
+.row > .btn { flex: 1 1 160px; }
+label.field { display: flex; flex-direction: column; gap: 6px; font-weight: 500; }
+input[type=text] {
+  font: 16px var(--font-body); padding: 12px 14px; border-radius: 10px;
+  border: 1px solid var(--line); background: var(--bg); color: var(--ink);
+}
+
+/* hexagon */
+.hex { width: 100%; max-width: 360px; margin: 0 auto; display: block; }
+.hex text { font-family: var(--font-display); font-size: 13px; font-weight: 700; }
+.hex .lbl { font-family: var(--font-body); font-size: 11px; font-weight: 500; fill: var(--muted); }
+
+.legend { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 14px; font-size: 14px; }
+.legend span { display: flex; gap: 8px; align-items: baseline; }
+.legend b { font-family: var(--font-display); }
+
+/* question */
+.progress { height: 6px; background: var(--line); border-radius: 99px; overflow: hidden; }
+.progress > i { display: block; height: 100%; background: var(--accent); width: 0; transition: width .25s ease; }
+.qhead { display: flex; justify-content: space-between; align-items: center; font-variant-numeric: tabular-nums; }
+.qtext { font-family: var(--font-display); font-weight: 500; font-size: clamp(21px, 5.6vw, 26px); line-height: 1.3; min-height: 3.9em; display: flex; align-items: center; text-wrap: balance; }
+.prompt { font-size: 14px; color: var(--muted); }
+.answers { display: flex; flex-direction: column; gap: 8px; }
+.ans { display: flex; align-items: center; gap: 14px; text-align: left; }
+.ans .dots { display: flex; gap: 3px; flex: none; width: 54px; }
+.ans .dots i { width: 8px; height: 8px; border-radius: 50%; background: var(--line); }
+.ans .dots i.on { background: var(--accent); }
+.ans[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
+.kbd { font-size: 12px; color: var(--muted); margin-left: auto; font-variant-numeric: tabular-nums; }
+@media (hover: none) { .kbd { display: none; } }
+
+/* results */
+.code { display: flex; gap: 8px; }
+.code span { font-family: var(--font-display); font-weight: 700; font-size: 28px; width: 52px; height: 52px; display: grid; place-items: center; border-radius: 12px; color: var(--surface); }
+.bars { display: flex; flex-direction: column; gap: 10px; }
+.bar { display: grid; grid-template-columns: 112px minmax(0, 1fr) 44px; gap: 10px; align-items: center; font-size: 14px; }
+.bar .track { height: 12px; background: var(--bg); border-radius: 99px; overflow: hidden; border: 1px solid var(--line); }
+.bar .track i { display: block; height: 100%; border-radius: 99px; }
+.bar .num { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+.type-card { border-top: 4px solid var(--c); }
+.type-card .tag { color: var(--c); font-family: var(--font-display); font-weight: 700; font-size: 13px; letter-spacing: .04em; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chips span { font-size: 14px; padding: 4px 10px; border-radius: 99px; background: var(--bg); border: 1px solid var(--line); }
+dl { margin: 0; display: flex; flex-direction: column; gap: 10px; }
+dt { font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+dd { margin: 4px 0 0; }
+ul.tips { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; }
+details summary { cursor: pointer; font-weight: 600; }
+.note { font-size: 13px; color: var(--muted); }
+.toast { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 10px; font-size: 14px; }
+textarea#copyfallback { width: 100%; min-height: 160px; font: 13px/1.4 var(--font-body); background: var(--bg); color: var(--ink); border: 1px solid var(--line); border-radius: 10px; padding: 10px; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <!-- START -->
+  <section id="start" class="wrap" style="gap:20px">
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <span class="eyebrow">60 вопросов · модель Холланда RIASEC</span>
+      <h1>Компас интересов</h1>
+      <p class="muted">Тест по методике O*NET Interest Profiler (Министерство труда США). Он показывает, какие виды деятельности нравятся больше всего, и подсказывает подходящие профессии. Занимает 10–15 минут.</p>
+    </div>
+
+    <div class="panel">
+      <svg class="hex" id="hexDemo" viewBox="0 0 360 330" role="img" aria-label="Пример профиля на шестиугольнике Холланда"></svg>
+      <div class="legend" id="legendDemo"></div>
+      <p class="note">Это пример профиля. Ваш появится после теста.</p>
+    </div>
+
+    <div class="panel">
+      <h2>Как отвечать</h2>
+      <ul class="tips">
+        <li>Читайте вид деятельности и отвечайте, насколько он вам <b>нравился бы</b>.</li>
+        <li>Не думайте об образовании, зарплате и о том, получится ли. Только «интересно или нет».</li>
+        <li>Правильных ответов нет. Первая реакция обычно самая точная.</li>
+      </ul>
+      <label class="field" for="nameInput">Как зовут участника (необязательно)
+        <input type="text" id="nameInput" maxlength="40" placeholder="Например, Аня" autocomplete="off">
+      </label>
+      <div class="row">
+        <button class="btn primary" id="startBtn" type="button">Начать тест</button>
+        <button class="btn" id="resumeBtn" type="button" hidden>Продолжить</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- QUESTION -->
+  <section id="quiz" class="wrap" hidden>
+    <div class="qhead">
+      <button class="btn ghost" id="backBtn" type="button">← Назад</button>
+      <span class="muted" id="counter">1 из 60</span>
+    </div>
+    <div class="progress" aria-hidden="true"><i id="bar"></i></div>
+    <p class="prompt">Насколько вам понравилось бы…</p>
+    <div class="qtext" id="qtext" aria-live="polite"></div>
+    <div class="answers" id="answers" role="group" aria-label="Варианты ответа"></div>
+  </section>
+
+  <!-- RESULTS -->
+  <section id="results" class="wrap" hidden></section>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  // O*NET Interest Profiler Short Form: 60 items, 10 per RIASEC area.
+  const ITEMS = {
+    R: ["Собирать кухонные шкафы", "Класть кирпич или плитку", "Ремонтировать бытовую технику", "Разводить рыбу в рыбном хозяйстве", "Собирать электронные устройства из деталей", "Водить грузовик и развозить посылки по офисам и домам", "Проверять качество деталей перед отправкой заказчику", "Ремонтировать и устанавливать замки", "Настраивать станки и работать на них на производстве", "Тушить лесные пожары"],
+    I: ["Разрабатывать новое лекарство", "Искать способы уменьшить загрязнение воды", "Проводить химические опыты", "Изучать движение планет", "Исследовать образцы крови под микроскопом", "Выяснять причину пожара", "Придумывать, как точнее предсказывать погоду", "Работать в биологической лаборатории", "Изобрести заменитель сахара", "Делать лабораторные анализы, чтобы находить болезни"],
+    A: ["Писать книги или пьесы", "Играть на музыкальном инструменте", "Сочинять музыку или делать аранжировки", "Рисовать картины", "Создавать спецэффекты для фильмов", "Расписывать декорации для спектаклей", "Писать сценарии для кино или сериалов", "Танцевать джаз или степ", "Петь в музыкальной группе", "Монтировать фильмы"],
+    S: ["Подбирать человеку комплекс упражнений и учить его выполнять", "Помогать людям с личными или эмоциональными трудностями", "Помогать людям с выбором профессии", "Проводить восстановительную терапию после травм и болезней", "Работать волонтёром в благотворительной организации", "Учить детей заниматься спортом", "Учить жестовому языку людей с нарушениями слуха", "Помогать вести групповые занятия с психологом", "Присматривать за детьми в детском саду", "Преподавать в старших классах школы"],
+    E: ["Покупать и продавать акции и облигации", "Управлять магазином", "Руководить салоном красоты или парикмахерской", "Руководить отделом в крупной компании", "Открыть собственный бизнес", "Вести переговоры о деловых контрактах", "Защищать интересы клиента в суде", "Продвигать на рынке новую коллекцию одежды", "Продавать товары в большом универмаге", "Управлять магазином одежды"],
+    C: ["Составлять электронные таблицы на компьютере", "Проверять документы и бланки на ошибки", "Устанавливать программы на компьютеры в большой сети", "Делать расчёты на калькуляторе", "Вести учёт поступающих и отправляемых грузов", "Рассчитывать зарплату сотрудникам", "Проводить инвентаризацию со сканером штрихкодов", "Вести учёт арендных платежей", "Вести складской учёт", "Сортировать и разносить почту в организации"]
+  };
+  const ORDER = ["R", "I", "A", "S", "E", "C"];
+  const QUESTIONS = [];
+  for (let i = 0; i < 10; i++) ORDER.forEach(t => QUESTIONS.push({ t, text: ITEMS[t][i] }));
+
+  const SCALE = [
+    { v: 0, label: "Очень не понравилось бы" },
+    { v: 1, label: "Не понравилось бы" },
+    { v: 2, label: "Не знаю" },
+    { v: 3, label: "Понравилось бы" },
+    { v: 4, label: "Очень понравилось бы" }
+  ];
+
+  const TYPES = {
+    R: { name: "Реалистичный", nick: "Практик",
+      about: "Любит работать руками и видеть осязаемый результат: чинить, строить, собирать, управлять техникой. Часто нравится работа на свежем воздухе, с растениями, животными, инструментами и машинами. Меньше привлекают бумажная работа и долгие разговоры.",
+      jobs: ["инженер-механик", "архитектор", "ветеринар", "агроном", "пилот", "мастер-электроник", "реставратор", "ландшафтный дизайнер", "кинолог", "спасатель МЧС", "шеф-повар", "техник-робототехник"],
+      subjects: ["физика", "технология", "черчение", "биология", "физкультура"],
+      tryit: "кружки робототехники и моделирования, туристические походы, юннаты, кулинарная студия, столярная или керамическая мастерская" },
+    I: { name: "Исследовательский", nick: "Мыслитель",
+      about: "Любит разбираться, как всё устроено, ставить вопросы и искать на них ответы. Нравятся наблюдения, эксперименты, логические задачи, работа с идеями и фактами. Ценит самостоятельность и интеллектуальный вызов.",
+      jobs: ["врач", "биолог", "химик", "программист", "аналитик данных", "астрофизик", "фармацевт", "генетик", "эколог", "метеоролог", "криминалист", "психолог-исследователь"],
+      subjects: ["математика", "физика", "химия", "биология", "информатика"],
+      tryit: "олимпиады, научные лагеря и смены, проектная работа в школе, онлайн-курсы по программированию, научно-популярные лекции и музеи" },
+    A: { name: "Артистический", nick: "Творец",
+      about: "Любит создавать новое и выражать себя: через слова, рисунок, музыку, движение, образ. Нравится работа без жёстких шаблонов, где ценятся воображение и оригинальность.",
+      jobs: ["дизайнер", "иллюстратор", "архитектор", "журналист", "писатель", "режиссёр", "актриса", "музыкант", "фотограф", "видеомонтажёр", "дизайнер интерфейсов", "хореограф"],
+      subjects: ["литература", "русский язык", "ИЗО", "музыка", "МХК", "иностранные языки"],
+      tryit: "художественная или музыкальная школа, театральная студия, школьная газета или блог, курсы видеомонтажа и дизайна" },
+    S: { name: "Социальный", nick: "Помощник",
+      about: "Любит работать с людьми: учить, помогать, поддерживать, заботиться. Хорошо чувствует других, ценит общение, сотрудничество и пользу для общества.",
+      jobs: ["учитель", "психолог", "врач-педиатр", "медсестра", "логопед", "социальный работник", "тренер", "реабилитолог", "воспитатель", "HR-специалист", "профконсультант", "сурдопереводчик"],
+      subjects: ["обществознание", "литература", "биология", "история", "иностранные языки"],
+      tryit: "волонтёрство, вожатство в лагере, помощь младшим с учёбой, школьное самоуправление, спортивные секции с командной работой" },
+    E: { name: "Предприимчивый", nick: "Лидер",
+      about: "Любит начинать новое, вести за собой, убеждать и добиваться целей. Нравятся соревнование, ответственность за решения, переговоры, бизнес и управление проектами. Готов(а) к разумному риску.",
+      jobs: ["предприниматель", "менеджер проектов", "маркетолог", "юрист", "PR-специалист", "продюсер", "руководитель отдела", "экономист", "дипломат", "риелтор", "event-менеджер", "финансовый консультант"],
+      subjects: ["обществознание", "экономика", "право", "иностранные языки", "русский язык", "математика"],
+      tryit: "школьное самоуправление, дебаты, бизнес-школы для подростков, организация школьных мероприятий, свой маленький проект или ярмарка" },
+    C: { name: "Конвенциональный", nick: "Организатор",
+      about: "Любит порядок, ясные правила и точность. Нравится работать с данными, документами и цифрами, наводить систему, доводить дело до конца без ошибок. Ценит стабильность и понятные задачи.",
+      jobs: ["бухгалтер", "аудитор", "финансовый аналитик", "логист", "специалист по базам данных", "системный администратор", "архивист", "нотариус", "банковский специалист", "специалист по кадрам", "корректор", "специалист по закупкам"],
+      subjects: ["математика", "информатика", "русский язык", "экономика"],
+      tryit: "курсы Excel и баз данных, ведение семейного или школьного бюджета, помощь в организации мероприятий и учёте, олимпиады по экономике" }
+  };
+
+  const PAIR_HINTS = {
+    RI: "инженерия, медицина, IT-железо, геология", RA: "архитектура, ландшафтный и промышленный дизайн, ювелирное дело",
+    RS: "спорт, реабилитация, ветеринария, спасательные службы", RE: "строительный бизнес, агробизнес, управление производством",
+    RC: "техническая диагностика, логистика, лабораторный контроль", IA: "архитектура, научная журналистика, дизайн интерфейсов, геймдизайн",
+    IS: "медицина, психология, преподавание наук", IE: "аналитика, консалтинг, технологическое предпринимательство",
+    IC: "аналитика данных, программирование, финансы, фармацевтика", AS: "педагогика искусства, арт-терапия, театр, журналистика",
+    AE: "реклама, маркетинг, продюсирование, мода", AC: "вёрстка и редактура, UX-исследования, реставрация, архивное дело",
+    SE: "управление в образовании и HR, политика, event-индустрия", SC: "администрирование в медицине и образовании, кадровая работа",
+    EC: "финансы, банковское дело, юриспруденция, управление проектами"
+  };
+
+  const KEY = "onet-ip60-v1";
+  const $ = id => document.getElementById(id);
+  const tg = window.Telegram && window.Telegram.WebApp;
+  if (tg) { try { tg.ready(); tg.expand(); } catch (e) {} }
+  const haptic = () => { try { tg && tg.HapticFeedback && tg.HapticFeedback.selectionChanged(); } catch (e) {} };
+
+  let state = { name: "", answers: Array(60).fill(null), idx: 0 };
+
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+  function load() {
+    try {
+      const s = JSON.parse(localStorage.getItem(KEY) || "null");
+      if (s && Array.isArray(s.answers) && s.answers.length === 60) return s;
+    } catch (e) {}
+    return null;
+  }
+
+  function show(id) {
+    ["start", "quiz", "results"].forEach(s => { $(s).hidden = s !== id; });
+    window.scrollTo(0, 0);
+  }
+
+  function scores(answers) {
+    const sc = { R: 0, I: 0, A: 0, S: 0, E: 0, C: 0 };
+    answers.forEach((v, i) => { if (v != null) sc[QUESTIONS[i].t] += v; });
+    return sc;
+  }
+
+  // Hexagon in Holland's order R-I-A-S-E-C, scores 0..40.
+  function drawHex(svg, sc) {
+    const cx = 180, cy = 165, r = 118, NS = "http://www.w3.org/2000/svg";
+    const pt = (k, f) => { const a = -Math.PI / 2 + k * Math.PI / 3; return [cx + Math.cos(a) * r * f, cy + Math.sin(a) * r * f]; };
+    let h = "";
+    [0.25, 0.5, 0.75, 1].forEach(f => {
+      h += `<polygon points="${ORDER.map((_, k) => pt(k, f).join(",")).join(" ")}" fill="none" stroke="var(--line)" stroke-width="1"/>`;
+    });
+    ORDER.forEach((_, k) => { const [x, y] = pt(k, 1); h += `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="var(--line)"/>`; });
+    [10, 20, 30, 40].forEach(v => { const [x, y] = pt(0, v / 40); h += `<text x="${x + 4}" y="${y + 4}" class="lbl" style="font-size:9px">${v}</text>`; });
+    const poly = ORDER.map((t, k) => pt(k, Math.max(sc[t], 0.5) / 40).join(",")).join(" ");
+    h += `<polygon points="${poly}" fill="var(--accent)" fill-opacity=".18" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round"/>`;
+    ORDER.forEach((t, k) => {
+      const [x, y] = pt(k, Math.max(sc[t], 0.5) / 40);
+      h += `<circle cx="${x}" cy="${y}" r="4.5" fill="var(--${t})"/>`;
+      const [lx, ly] = pt(k, 1.17);
+      const anchor = Math.abs(lx - cx) < 5 ? "middle" : (lx > cx ? "start" : "end");
+      h += `<text x="${lx}" y="${ly}" text-anchor="${anchor}" fill="var(--${t})">${t}</text>`;
+      h += `<text x="${lx}" y="${ly + 14}" text-anchor="${anchor}" class="lbl">${TYPES[t].nick} · ${sc[t]}</text>`;
+    });
+    svg.innerHTML = h;
+  }
+
+  function legend(el) {
+    el.innerHTML = ORDER.map(t => `<span><b style="color:var(--${t})">${t}</b>${TYPES[t].name}</span>`).join("");
+  }
+
+  // ---------- quiz ----------
+  function renderQuestion() {
+    const i = state.idx, q = QUESTIONS[i];
+    $("counter").textContent = `${i + 1} из 60`;
+    $("bar").style.width = `${(state.answers.filter(a => a != null).length / 60) * 100}%`;
+    $("qtext").textContent = q.text;
+    const box = $("answers");
+    box.innerHTML = "";
+    SCALE.slice().reverse().forEach(s => {
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "btn ans"; b.id = `ans-${s.v}`;
+      b.setAttribute("aria-pressed", String(state.answers[i] === s.v));
+      b.innerHTML = `<span class="dots" aria-hidden="true">${[0,1,2,3,4].map(d => `<i class="${d <= s.v ? "on" : ""}"></i>`).join("")}</span><span>${s.label}</span><span class="kbd">${s.v + 1}</span>`;
+      b.addEventListener("click", () => answer(s.v));
+      box.appendChild(b);
+    });
+  }
+
+  let locked = false;
+  function answer(v) {
+    if (locked) return;
+    haptic();
+    state.answers[state.idx] = v;
+    save();
+    [...$("answers").children].forEach(b => b.setAttribute("aria-pressed", String(b.id === `ans-${v}`)));
+    locked = true;
+    setTimeout(() => {
+      locked = false;
+      const next = state.answers.findIndex((a, k) => a == null && k > state.idx);
+      const firstEmpty = state.answers.indexOf(null);
+      if (firstEmpty === -1) { renderResults(); show("results"); return; }
+      state.idx = next !== -1 ? next : firstEmpty;
+      save();
+      renderQuestion();
+    }, 180);
+  }
+
+  $("backBtn").addEventListener("click", () => {
+    if (state.idx === 0) { initStart(); show("start"); return; }
+    state.idx--; save(); renderQuestion();
+  });
+
+  document.addEventListener("keydown", e => {
+    if ($("quiz").hidden) return;
+    const n = parseInt(e.key, 10);
+    if (n >= 1 && n <= 5) answer(n - 1);
+    if (e.key === "Backspace" || e.key === "ArrowLeft") $("backBtn").click();
+  });
+
+  // ---------- results ----------
+  function rank(sc) { return ORDER.slice().sort((a, b) => sc[b] - sc[a] || ORDER.indexOf(a) - ORDER.indexOf(b)); }
+
+  function summaryText(sc, top) {
+    const who = state.name ? `${state.name}: ` : "";
+    const lines = [`${who}Компас интересов (O*NET Interest Profiler, 60 вопросов)`, `Код Холланда: ${top.slice(0, 3).join("")}`, ""];
+    rank(sc).forEach(t => lines.push(`${t} ${TYPES[t].name} (${TYPES[t].nick}): ${sc[t]} из 40`));
+    lines.push("", "Профессии по ведущим интересам:");
+    top.slice(0, 3).forEach(t => lines.push(`${TYPES[t].nick}: ${TYPES[t].jobs.slice(0, 8).join(", ")}`));
+    return lines.join("\n");
+  }
+
+  function renderResults() {
+    const sc = scores(state.answers);
+    const top = rank(sc);
+    const max = sc[top[0]], min = sc[top[5]];
+    const pairKey = [top[0], top[1]].sort((a, b) => ORDER.indexOf(a) - ORDER.indexOf(b)).join("");
+    const el = $("results");
+
+    let profileNote = "";
+    if (max <= 12) profileNote = "Все баллы невысокие. Так бывает, когда интересы ещё формируются или большинство занятий пока незнакомы. Это нормально: стоит пробовать новое и пройти тест ещё раз через полгода–год.";
+    else if (max - min <= 6) profileNote = "Профиль ровный: интерес примерно одинаков ко многим областям. Это даёт широкий выбор. Помогут пробы в разных кружках и разговоры о том, что увлекает сильнее всего.";
+    else if (sc[top[0]] - sc[top[1]] >= 8) profileNote = `Ярко выражен один ведущий интерес: ${TYPES[top[0]].name.toLowerCase()} тип заметно опережает остальные.`;
+
+    el.innerHTML = `
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <span class="eyebrow">Результат${state.name ? " · " + esc(state.name) : ""}</span>
+        <h1>Код Холланда</h1>
+        <div class="code">${top.slice(0, 3).map(t => `<span style="background:var(--${t})">${t}</span>`).join("")}</div>
+        <p class="muted">Три самых сильных интереса: ${top.slice(0, 3).map(t => `<b style="color:var(--${t})">${TYPES[t].nick.toLowerCase()}</b>`).join(", ")}. Первая буква весит больше всего.</p>
+      </div>
+
+      <div class="panel">
+        <svg class="hex" id="hexRes" viewBox="0 0 360 330" role="img" aria-label="Профиль интересов на шестиугольнике Холланда"></svg>
+        <div class="bars">
+          ${top.map(t => `<div class="bar"><span><b style="color:var(--${t})">${t}</b> ${TYPES[t].nick}</span><span class="track"><i style="width:${sc[t] / 40 * 100}%;background:var(--${t})"></i></span><span class="num">${sc[t]}</span></div>`).join("")}
+        </div>
+        <p class="note">Баллы от 0 до 40 по каждой области (10 вопросов × 0–4). Соседние на шестиугольнике типы похожи, противоположные сильнее всего различаются.</p>
+        ${profileNote ? `<p>${profileNote}</p>` : ""}
+      </div>
+
+      ${top.slice(0, 3).map((t, k) => typeCard(t, sc[t], k)).join("")}
+
+      <div class="panel">
+        <h2>Сочетание ${top[0]} + ${top[1]}</h2>
+        <p>Где сходятся два ведущих интереса: <b>${PAIR_HINTS[pairKey]}</b>.</p>
+        <p class="note">Профессии на стыке двух сильных интересов обычно приносят больше удовлетворения, чем выбор по одной области.</p>
+      </div>
+
+      <div class="panel">
+        <h2>Родителям: что делать с результатом</h2>
+        <ul class="tips">
+          <li>Обсудите результат вместе. Спросите, с чем ребёнок согласен, а что удивило.</li>
+          <li>Тест измеряет интересы, а не способности. Рядом стоит оценить, что получается легко, и учесть ценности и характер.</li>
+          <li>Дайте попробовать занятия из ведущих областей: кружок, летняя школа, день на работе у знакомого специалиста.</li>
+          <li>Интересы в подростковом возрасте меняются. Повторите тест через 1–2 года и сравните.</li>
+        </ul>
+      </div>
+
+      <details class="panel">
+        <summary>Остальные области</summary>
+        ${top.slice(3).map(t => `<div style="display:flex;flex-direction:column;gap:6px"><h3 style="color:var(--${t})">${t} · ${TYPES[t].name} (${sc[t]})</h3><p class="muted">${TYPES[t].about}</p><div class="chips">${TYPES[t].jobs.slice(0, 6).map(j => `<span>${j}</span>`).join("")}</div></div>`).join("")}
+      </details>
+
+      <div class="row">
+        <button class="btn primary" id="copyBtn" type="button">Скопировать результат</button>
+        <button class="btn" id="reviewBtn" type="button">Изменить ответы</button>
+      </div>
+      <textarea id="copyfallback" readonly hidden></textarea>
+      <button class="btn ghost" id="restartBtn" type="button">Пройти заново</button>
+      <p class="note">Методика: O*NET Interest Profiler Short Form (60 вопросов), U.S. Department of Labor / National Center for O*NET Development, на основе теории профессиональных типов Дж. Холланда. Перевод формулировок адаптирован; российские нормы для этой версии не установлены, поэтому результат стоит читать как ориентир для разговора, а не как диагноз.</p>
+    `;
+    drawHex($("hexRes"), sc);
+
+    $("copyBtn").addEventListener("click", () => {
+      const txt = summaryText(sc, top);
+      const fb = () => { const ta = $("copyfallback"); ta.value = txt; ta.hidden = false; ta.focus(); ta.select(); };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(txt).then(() => toast("Скопировано"), fb);
+      } else fb();
+    });
+    $("reviewBtn").addEventListener("click", () => { state.idx = 0; save(); renderQuestion(); show("quiz"); });
+    $("restartBtn").addEventListener("click", () => {
+      state = { name: state.name, answers: Array(60).fill(null), idx: 0 }; save(); initStart(); show("start");
+    });
+  }
+
+  function typeCard(t, s, k) {
+    const T = TYPES[t];
+    return `<div class="panel type-card" style="--c:var(--${t})">
+      <span class="tag">${["ВЕДУЩИЙ", "ВТОРОЙ", "ТРЕТИЙ"][k]} ИНТЕРЕС · ${t} · ${s} из 40</span>
+      <h2>${T.name} тип: «${T.nick}»</h2>
+      <p>${T.about}</p>
+      <dl>
+        <div><dt>Профессии</dt><dd><div class="chips">${T.jobs.map(j => `<span>${j}</span>`).join("")}</div></dd></div>
+        <div><dt>Школьные предметы</dt><dd>${T.subjects.join(", ")}</dd></div>
+        <div><dt>Что попробовать</dt><dd>${T.tryit}</dd></div>
+      </dl>
+    </div>`;
+  }
+
+  function esc(s) { return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+  function toast(msg) {
+    const d = document.createElement("div"); d.className = "toast"; d.textContent = msg; d.setAttribute("role", "status");
+    document.body.appendChild(d); setTimeout(() => d.remove(), 1800);
+  }
+
+  // ---------- start ----------
+  function initStart() {
+    $("nameInput").value = state.name || "";
+    const done = state.answers.filter(a => a != null).length;
+    const rb = $("resumeBtn");
+    rb.hidden = done === 0;
+    rb.textContent = done === 60 ? "Открыть результат" : `Продолжить (${done} из 60)`;
+  }
+
+  $("startBtn").addEventListener("click", () => {
+    state = { name: $("nameInput").value.trim(), answers: Array(60).fill(null), idx: 0 };
+    save(); renderQuestion(); show("quiz");
+  });
+  $("resumeBtn").addEventListener("click", () => {
+    state.name = $("nameInput").value.trim();
+    if (state.answers.indexOf(null) === -1) { renderResults(); show("results"); return; }
+    state.idx = Math.max(0, state.answers.indexOf(null)); save(); renderQuestion(); show("quiz");
+  });
+
+  drawHex($("hexDemo"), { R: 14, I: 31, A: 36, S: 27, E: 12, C: 8 });
+  legend($("legendDemo"));
+  const saved = load();
+  if (saved) state = saved;
+  initStart();
+})();
+</script>
+</body>
+</html>
