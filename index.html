@@ -3,6 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-title" content="Компас">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <title>Компас интересов</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -881,13 +885,15 @@ textarea.copyfallback { width: 100%; min-height: 180px; font: 13px/1.4 var(--fon
   const resultText = t => `${t.title} (${t.covers})\n${t.text(t.compute(st(t.id).a))}`;
 
   // ---------- home ----------
+  // Logo: Holland hexagon with the six RIASEC colours and a compass needle (same drawing as icon.svg).
+  const LOGO = `<svg viewBox="0 0 1024 1024" width="56" height="56" role="img" aria-label="Логотип Компас интересов" style="flex:none;border-radius:13px"><rect width="1024" height="1024" fill="#0E6B63"/><polygon points="512,182 797.8,347 797.8,677 512,842 226.2,677 226.2,347" fill="none" stroke="#E6F3F0" stroke-opacity=".9" stroke-width="30" stroke-linejoin="round"/>${[[512, 182, "#F09A6C"], [797.8, 347, "#7DB0F0"], [797.8, 677, "#D19AE8"], [512, 842, "#7ADBA8"], [226.2, 677, "#F2C55C"], [226.2, 347, "#B9C6D6"]].map(([x, y, c]) => `<circle cx="${x}" cy="${y}" r="54" fill="${c}"/>`).join("")}<g transform="translate(512 512) rotate(32)"><polygon points="0,-268 72,0 -72,0" fill="#FFFFFF"/><polygon points="0,268 72,0 -72,0" fill="#FFFFFF" fill-opacity=".38"/><circle r="40" fill="#0D6A61" stroke="#FFFFFF" stroke-width="18"/></g></svg>`;
   function renderHome() {
     const done = TESTS.filter(t => isDone(t.id));
     const who = state.name ? esc(state.name) : "";
     $("home").innerHTML = `
       <div style="display:flex;flex-direction:column;gap:10px">
         <span class="eyebrow">${TESTS.length} тестов для профориентации выпускника</span>
-        <h1>Компас интересов</h1>
+        <div style="display:flex;align-items:center;gap:14px">${LOGO}<h1>Компас интересов</h1></div>
         <p class="muted">Интересы, способности, сильные стороны, личность, ценности и готовность к выбору. Каждый тест проходится отдельно, в любом порядке. Ответы сохраняются на этом устройстве.</p>
       </div>
       <div class="panel">

@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#138074"/>
+      <stop offset="1" stop-color="#0A4F49"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+  <!-- Holland hexagon R-I-A-S-E-C, pointy top -->
+  <polygon points="512,182 797.8,347 797.8,677 512,842 226.2,677 226.2,347" fill="none" stroke="#E6F3F0" stroke-opacity=".9" stroke-width="30" stroke-linejoin="round"/>
+  <circle cx="512" cy="182" r="54" fill="#F09A6C"/>
+  <circle cx="797.8" cy="347" r="54" fill="#7DB0F0"/>
+  <circle cx="797.8" cy="677" r="54" fill="#D19AE8"/>
+  <circle cx="512" cy="842" r="54" fill="#7ADBA8"/>
+  <circle cx="226.2" cy="677" r="54" fill="#F2C55C"/>
+  <circle cx="226.2" cy="347" r="54" fill="#B9C6D6"/>
+  <!-- compass needle -->
+  <g transform="translate(512 512) rotate(32)">
+    <polygon points="0,-268 72,0 -72,0" fill="#FFFFFF"/>
+    <polygon points="0,268 72,0 -72,0" fill="#FFFFFF" fill-opacity=".38"/>
+    <circle r="40" fill="#0D6A61" stroke="#FFFFFF" stroke-width="18"/>
+  </g>
+</svg>
