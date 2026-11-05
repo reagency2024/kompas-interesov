@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Golos+Text:wght@400;500;600&display=swap">
 <style>
-/* Layout: one narrow column, app-like; three screens (start, question, results) swap in place. Holland hexagon is the visual signature. */
+/* Layout: one narrow app column; home lists tests grouped by role, quiz and result screens swap in place. */
 :root {
   --bg: #EEF2F1;
   --surface: #FFFFFF;
@@ -19,6 +19,7 @@
   --accent: #0E6B63;
   --accent-ink: #FFFFFF;
   --accent-soft: #D7ECE8;
+  --risk: #B4443A;
   --R: #B85A2E; --I: #2B66AA; --A: #8E46A6; --S: #24855C; --E: #B7820F; --C: #55657A;
   --font-display: "Unbounded", "Arial Black", system-ui, sans-serif;
   --font-body: "Golos Text", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -27,18 +28,19 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: #111A1E; --surface: #19242A; --ink: #E7EEEC; --muted: #9AABB0; --line: #2B3A40;
-    --accent: #43B3A6; --accent-ink: #0B1513; --accent-soft: #1D3A37;
+    --accent: #43B3A6; --accent-ink: #0B1513; --accent-soft: #1D3A37; --risk: #E37B70;
     --R: #E28A5E; --I: #6FA3E3; --A: #C185DA; --S: #5CC293; --E: #E2B54C; --C: #98A8BC;
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
   --bg: #111A1E; --surface: #19242A; --ink: #E7EEEC; --muted: #9AABB0; --line: #2B3A40;
-  --accent: #43B3A6; --accent-ink: #0B1513; --accent-soft: #1D3A37;
+  --accent: #43B3A6; --accent-ink: #0B1513; --accent-soft: #1D3A37; --risk: #E37B70;
   --R: #E28A5E; --I: #6FA3E3; --A: #C185DA; --S: #5CC293; --E: #E2B54C; --C: #98A8BC;
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 html, body { min-height: 100%; }
 body {
   background: var(--bg); color: var(--ink);
@@ -47,47 +49,55 @@ body {
   padding-right: max(16px, env(safe-area-inset-right, 0px));
   padding-block: 20px 40px;
 }
-.wrap { max-width: 560px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+.wrap { max-width: 580px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
 h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; line-height: 1.2; }
 h1 { font-size: clamp(26px, 7vw, 34px); font-weight: 700; }
-h2 { font-size: 20px; font-weight: 700; }
-h3 { font-size: 16px; font-weight: 500; }
+h2 { font-size: 19px; font-weight: 700; }
+h3 { font-size: 15px; font-weight: 500; }
 p { margin: 0; }
 .muted { color: var(--muted); }
 .eyebrow { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
-.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
 .btn {
   appearance: none; border: 1px solid var(--line); background: var(--surface); color: var(--ink);
-  font: 600 16px/1.2 var(--font-body); padding: 14px 18px; border-radius: 12px; cursor: pointer;
+  font: 600 16px/1.25 var(--font-body); padding: 14px 18px; border-radius: 12px; cursor: pointer;
   transition: transform .08s ease, background .15s ease, border-color .15s ease;
 }
 .btn:active { transform: scale(.98); }
 .btn:focus-visible, input:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
 .btn.ghost { background: transparent; border-color: transparent; color: var(--muted); padding-inline: 8px; }
+.btn.small { font-size: 14px; padding: 10px 14px; }
 .btn:disabled { opacity: .4; cursor: default; }
 .row { display: flex; gap: 10px; flex-wrap: wrap; }
-.row > .btn { flex: 1 1 160px; }
+.row > .btn { flex: 1 1 150px; }
 label.field { display: flex; flex-direction: column; gap: 6px; font-weight: 500; }
 input[type=text] {
   font: 16px var(--font-body); padding: 12px 14px; border-radius: 10px;
   border: 1px solid var(--line); background: var(--bg); color: var(--ink);
 }
 
+/* home */
+.group { display: flex; flex-direction: column; gap: 10px; }
+.test { gap: 10px; }
+.test .top { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.badge { font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 99px; border: 1px solid var(--line); color: var(--muted); white-space: nowrap; }
+.badge.orig { color: var(--accent); border-color: var(--accent); }
+.status { font-size: 14px; color: var(--muted); }
+.status b { color: var(--ink); }
+.status.done { color: var(--accent); }
+
 /* hexagon */
 .hex { width: 100%; max-width: 360px; margin: 0 auto; display: block; }
 .hex text { font-family: var(--font-display); font-size: 13px; font-weight: 700; }
 .hex .lbl { font-family: var(--font-body); font-size: 11px; font-weight: 500; fill: var(--muted); }
 
-.legend { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 14px; font-size: 14px; }
-.legend span { display: flex; gap: 8px; align-items: baseline; }
-.legend b { font-family: var(--font-display); }
-
 /* question */
 .progress { height: 6px; background: var(--line); border-radius: 99px; overflow: hidden; }
 .progress > i { display: block; height: 100%; background: var(--accent); width: 0; transition: width .25s ease; }
-.qhead { display: flex; justify-content: space-between; align-items: center; font-variant-numeric: tabular-nums; }
-.qtext { font-family: var(--font-display); font-weight: 500; font-size: clamp(21px, 5.6vw, 26px); line-height: 1.3; min-height: 3.9em; display: flex; align-items: center; text-wrap: balance; }
+.qhead { display: flex; justify-content: space-between; align-items: center; gap: 10px; font-variant-numeric: tabular-nums; }
+.qtext { font-family: var(--font-display); font-weight: 500; font-size: clamp(20px, 5.4vw, 25px); line-height: 1.3; min-height: 3.9em; display: flex; align-items: center; text-wrap: balance; }
+.qtext.sm { font-size: clamp(17px, 4.6vw, 21px); min-height: 0; }
 .prompt { font-size: 14px; color: var(--muted); }
 .answers { display: flex; flex-direction: column; gap: 8px; }
 .ans { display: flex; align-items: center; gap: 14px; text-align: left; }
@@ -97,385 +107,926 @@ input[type=text] {
 .ans[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
 .kbd { font-size: 12px; color: var(--muted); margin-left: auto; font-variant-numeric: tabular-nums; }
 @media (hover: none) { .kbd { display: none; } }
+.bip { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
+.bip div { display: flex; gap: 12px; align-items: flex-start; padding: 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); font-size: 17px; font-weight: 500; }
+.bip b { font-family: var(--font-display); color: var(--accent); flex: none; }
+.opts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.opts .btn { text-align: left; }
+.opts.shapes .btn { display: grid; place-items: center; padding: 10px; }
+.shape { width: 84px; height: 84px; display: block; }
+.shape rect { fill: var(--ink); }
+.sample { display: grid; place-items: center; padding: 12px; border: 1px dashed var(--line); border-radius: 12px; }
+.sample .shape rect { fill: var(--accent); }
 
 /* results */
-.code { display: flex; gap: 8px; }
-.code span { font-family: var(--font-display); font-weight: 700; font-size: 28px; width: 52px; height: 52px; display: grid; place-items: center; border-radius: 12px; color: var(--surface); }
+.code { display: flex; gap: 8px; flex-wrap: wrap; }
+.code span { font-family: var(--font-display); font-weight: 700; font-size: 28px; min-width: 52px; height: 52px; padding: 0 8px; display: grid; place-items: center; border-radius: 12px; color: var(--surface); background: var(--accent); }
 .bars { display: flex; flex-direction: column; gap: 10px; }
-.bar { display: grid; grid-template-columns: 112px minmax(0, 1fr) 44px; gap: 10px; align-items: center; font-size: 14px; }
+.bar { display: grid; grid-template-columns: minmax(0, 150px) minmax(0, 1fr) 52px; gap: 10px; align-items: center; font-size: 14px; }
 .bar .track { height: 12px; background: var(--bg); border-radius: 99px; overflow: hidden; border: 1px solid var(--line); }
 .bar .track i { display: block; height: 100%; border-radius: 99px; }
 .bar .num { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
-.type-card { border-top: 4px solid var(--c); }
-.type-card .tag { color: var(--c); font-family: var(--font-display); font-weight: 700; font-size: 13px; letter-spacing: .04em; }
+.axis { display: flex; flex-direction: column; gap: 6px; }
+.axis .ends { display: flex; justify-content: space-between; gap: 10px; font-size: 14px; }
+.axis .ends b { font-family: var(--font-display); }
+.axis .line { position: relative; height: 12px; background: var(--bg); border: 1px solid var(--line); border-radius: 99px; }
+.axis .line::after { content: ""; position: absolute; left: 50%; top: -3px; bottom: -3px; width: 1px; background: var(--muted); }
+.axis .line i { position: absolute; top: 50%; width: 18px; height: 18px; margin: -9px 0 0 -9px; border-radius: 50%; background: var(--accent); border: 2px solid var(--surface); }
+.card { border-top: 4px solid var(--c, var(--accent)); }
+.card .tag { color: var(--c, var(--accent)); font-family: var(--font-display); font-weight: 700; font-size: 12px; letter-spacing: .04em; }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .chips span { font-size: 14px; padding: 4px 10px; border-radius: 99px; background: var(--bg); border: 1px solid var(--line); }
+.lvl { font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 99px; background: var(--bg); border: 1px solid var(--line); white-space: nowrap; }
+.lvl.hi { color: var(--accent); border-color: var(--accent); }
+.lvl.risk { color: var(--risk); border-color: var(--risk); }
 dl { margin: 0; display: flex; flex-direction: column; gap: 10px; }
 dt { font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
 dd { margin: 4px 0 0; }
 ul.tips { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; }
 details summary { cursor: pointer; font-weight: 600; }
 .note { font-size: 13px; color: var(--muted); }
-.toast { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 10px; font-size: 14px; }
-textarea#copyfallback { width: 100%; min-height: 160px; font: 13px/1.4 var(--font-body); background: var(--bg); color: var(--ink); border: 1px solid var(--line); border-radius: 10px; padding: 10px; }
+.toast { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 10px; font-size: 14px; z-index: 5; }
+textarea.copyfallback { width: 100%; min-height: 180px; font: 13px/1.4 var(--font-body); background: var(--bg); color: var(--ink); border: 1px solid var(--line); border-radius: 10px; padding: 10px; }
+@media (max-width: 420px) { .bar { grid-template-columns: minmax(0, 118px) minmax(0, 1fr) 46px; } }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 </head>
 <body>
 
 <div class="wrap">
-
-  <!-- START -->
-  <section id="start" class="wrap" style="gap:20px">
-    <div style="display:flex;flex-direction:column;gap:10px">
-      <span class="eyebrow">60 вопросов · модель Холланда RIASEC</span>
-      <h1>Компас интересов</h1>
-      <p class="muted">Тест по методике O*NET Interest Profiler (Министерство труда США). Он показывает, какие виды деятельности нравятся больше всего, и подсказывает подходящие профессии. Занимает 10–15 минут.</p>
-    </div>
-
-    <div class="panel">
-      <svg class="hex" id="hexDemo" viewBox="0 0 360 330" role="img" aria-label="Пример профиля на шестиугольнике Холланда"></svg>
-      <div class="legend" id="legendDemo"></div>
-      <p class="note">Это пример профиля. Ваш появится после теста.</p>
-    </div>
-
-    <div class="panel">
-      <h2>Как отвечать</h2>
-      <ul class="tips">
-        <li>Читайте вид деятельности и отвечайте, насколько он вам <b>нравился бы</b>.</li>
-        <li>Не думайте об образовании, зарплате и о том, получится ли. Только «интересно или нет».</li>
-        <li>Правильных ответов нет. Первая реакция обычно самая точная.</li>
-      </ul>
-      <label class="field" for="nameInput">Как зовут участника (необязательно)
-        <input type="text" id="nameInput" maxlength="40" placeholder="Например, Аня" autocomplete="off">
-      </label>
-      <div class="row">
-        <button class="btn primary" id="startBtn" type="button">Начать тест</button>
-        <button class="btn" id="resumeBtn" type="button" hidden>Продолжить</button>
-      </div>
-    </div>
-  </section>
-
-  <!-- QUESTION -->
+  <section id="home" class="wrap"></section>
   <section id="quiz" class="wrap" hidden>
     <div class="qhead">
       <button class="btn ghost" id="backBtn" type="button">← Назад</button>
-      <span class="muted" id="counter">1 из 60</span>
+      <span class="muted" id="counter"></span>
+      <button class="btn ghost" id="homeBtn" type="button">К тестам</button>
     </div>
     <div class="progress" aria-hidden="true"><i id="bar"></i></div>
-    <p class="prompt">Насколько вам понравилось бы…</p>
-    <div class="qtext" id="qtext" aria-live="polite"></div>
-    <div class="answers" id="answers" role="group" aria-label="Варианты ответа"></div>
+    <p class="prompt" id="prompt"></p>
+    <div id="qbody" aria-live="polite"></div>
   </section>
-
-  <!-- RESULTS -->
-  <section id="results" class="wrap" hidden></section>
+  <section id="result" class="wrap" hidden></section>
 </div>
 
 <script>
 (function () {
   "use strict";
+  const TESTS = [];
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
-  // O*NET Interest Profiler Short Form: 60 items, 10 per RIASEC area.
-  const ITEMS = {
-    R: ["Собирать кухонные шкафы", "Класть кирпич или плитку", "Ремонтировать бытовую технику", "Разводить рыбу в рыбном хозяйстве", "Собирать электронные устройства из деталей", "Водить грузовик и развозить посылки по офисам и домам", "Проверять качество деталей перед отправкой заказчику", "Ремонтировать и устанавливать замки", "Настраивать станки и работать на них на производстве", "Тушить лесные пожары"],
-    I: ["Разрабатывать новое лекарство", "Искать способы уменьшить загрязнение воды", "Проводить химические опыты", "Изучать движение планет", "Исследовать образцы крови под микроскопом", "Выяснять причину пожара", "Придумывать, как точнее предсказывать погоду", "Работать в биологической лаборатории", "Изобрести заменитель сахара", "Делать лабораторные анализы, чтобы находить болезни"],
-    A: ["Писать книги или пьесы", "Играть на музыкальном инструменте", "Сочинять музыку или делать аранжировки", "Рисовать картины", "Создавать спецэффекты для фильмов", "Расписывать декорации для спектаклей", "Писать сценарии для кино или сериалов", "Танцевать джаз или степ", "Петь в музыкальной группе", "Монтировать фильмы"],
-    S: ["Подбирать человеку комплекс упражнений и учить его выполнять", "Помогать людям с личными или эмоциональными трудностями", "Помогать людям с выбором профессии", "Проводить восстановительную терапию после травм и болезней", "Работать волонтёром в благотворительной организации", "Учить детей заниматься спортом", "Учить жестовому языку людей с нарушениями слуха", "Помогать вести групповые занятия с психологом", "Присматривать за детьми в детском саду", "Преподавать в старших классах школы"],
-    E: ["Покупать и продавать акции и облигации", "Управлять магазином", "Руководить салоном красоты или парикмахерской", "Руководить отделом в крупной компании", "Открыть собственный бизнес", "Вести переговоры о деловых контрактах", "Защищать интересы клиента в суде", "Продвигать на рынке новую коллекцию одежды", "Продавать товары в большом универмаге", "Управлять магазином одежды"],
-    C: ["Составлять электронные таблицы на компьютере", "Проверять документы и бланки на ошибки", "Устанавливать программы на компьютеры в большой сети", "Делать расчёты на калькуляторе", "Вести учёт поступающих и отправляемых грузов", "Рассчитывать зарплату сотрудникам", "Проводить инвентаризацию со сканером штрихкодов", "Вести учёт арендных платежей", "Вести складской учёт", "Сортировать и разносить почту в организации"]
-  };
-  const ORDER = ["R", "I", "A", "S", "E", "C"];
-  const QUESTIONS = [];
-  for (let i = 0; i < 10; i++) ORDER.forEach(t => QUESTIONS.push({ t, text: ITEMS[t][i] }));
+  // Builds the item list by taking the i-th item of each scale in turn, so scales alternate like in the originals.
+  function interleave(groups, order) {
+    const out = [], n = Math.max(...order.map(k => groups[k].length));
+    for (let i = 0; i < n; i++) order.forEach(k => { const it = groups[k][i]; if (it != null) out.push(typeof it === "string" ? { text: it, k } : Object.assign({ k }, it)); });
+    return out;
+  }
+  // Sums answers per scale; answers are stored as 0..4, `val` maps them to points.
+  function sums(items, a, val) {
+    const s = {};
+    items.forEach((it, i) => { s[it.k] = (s[it.k] || 0) + (a[i] == null ? 0 : (val ? val(a[i], it) : a[i] + 1)); });
+    return s;
+  }
+  const rankKeys = (obj, order) => order.slice().sort((x, y) => obj[y] - obj[x] || order.indexOf(x) - order.indexOf(y));
+  const pct = (v, min, max) => Math.round((v - min) / (max - min) * 100);
+  function level(p) { return p >= 67 ? { id: "hi", t: "высокий" } : p < 40 ? { id: "lo", t: "низкий" } : { id: "mid", t: "средний" }; }
 
-  const SCALE = [
-    { v: 0, label: "Очень не понравилось бы" },
-    { v: 1, label: "Не понравилось бы" },
-    { v: 2, label: "Не знаю" },
-    { v: 3, label: "Понравилось бы" },
-    { v: 4, label: "Очень понравилось бы" }
-  ];
+  function bar(label, value, max, color, num) {
+    const w = Math.max(0, Math.min(100, value / max * 100));
+    return `<div class="bar"><span>${label}</span><span class="track"><i style="width:${w}%;background:${color}"></i></span><span class="num">${num != null ? num : value}</span></div>`;
+  }
+  const chips = arr => `<div class="chips">${arr.map(j => `<span>${j}</span>`).join("")}</div>`;
+  const card = (tag, title, body, color) => `<div class="panel card" style="--c:${color || "var(--accent)"}"><span class="tag">${tag}</span><h2>${title}</h2>${body}</div>`;
+  const panel = body => `<div class="panel">${body}</div>`;
 
-  const TYPES = {
-    R: { name: "Реалистичный", nick: "Практик",
-      about: "Любит работать руками и видеть осязаемый результат: чинить, строить, собирать, управлять техникой. Часто нравится работа на свежем воздухе, с растениями, животными, инструментами и машинами. Меньше привлекают бумажная работа и долгие разговоры.",
-      jobs: ["инженер-механик", "архитектор", "ветеринар", "агроном", "пилот", "мастер-электроник", "реставратор", "ландшафтный дизайнер", "кинолог", "спасатель МЧС", "шеф-повар", "техник-робототехник"],
-      subjects: ["физика", "технология", "черчение", "биология", "физкультура"],
-      tryit: "кружки робототехники и моделирования, туристические походы, юннаты, кулинарная студия, столярная или керамическая мастерская" },
-    I: { name: "Исследовательский", nick: "Мыслитель",
-      about: "Любит разбираться, как всё устроено, ставить вопросы и искать на них ответы. Нравятся наблюдения, эксперименты, логические задачи, работа с идеями и фактами. Ценит самостоятельность и интеллектуальный вызов.",
-      jobs: ["врач", "биолог", "химик", "программист", "аналитик данных", "астрофизик", "фармацевт", "генетик", "эколог", "метеоролог", "криминалист", "психолог-исследователь"],
-      subjects: ["математика", "физика", "химия", "биология", "информатика"],
-      tryit: "олимпиады, научные лагеря и смены, проектная работа в школе, онлайн-курсы по программированию, научно-популярные лекции и музеи" },
-    A: { name: "Артистический", nick: "Творец",
-      about: "Любит создавать новое и выражать себя: через слова, рисунок, музыку, движение, образ. Нравится работа без жёстких шаблонов, где ценятся воображение и оригинальность.",
-      jobs: ["дизайнер", "иллюстратор", "архитектор", "журналист", "писатель", "режиссёр", "актриса", "музыкант", "фотограф", "видеомонтажёр", "дизайнер интерфейсов", "хореограф"],
-      subjects: ["литература", "русский язык", "ИЗО", "музыка", "МХК", "иностранные языки"],
-      tryit: "художественная или музыкальная школа, театральная студия, школьная газета или блог, курсы видеомонтажа и дизайна" },
-    S: { name: "Социальный", nick: "Помощник",
-      about: "Любит работать с людьми: учить, помогать, поддерживать, заботиться. Хорошо чувствует других, ценит общение, сотрудничество и пользу для общества.",
-      jobs: ["учитель", "психолог", "врач-педиатр", "медсестра", "логопед", "социальный работник", "тренер", "реабилитолог", "воспитатель", "HR-специалист", "профконсультант", "сурдопереводчик"],
-      subjects: ["обществознание", "литература", "биология", "история", "иностранные языки"],
-      tryit: "волонтёрство, вожатство в лагере, помощь младшим с учёбой, школьное самоуправление, спортивные секции с командной работой" },
-    E: { name: "Предприимчивый", nick: "Лидер",
-      about: "Любит начинать новое, вести за собой, убеждать и добиваться целей. Нравятся соревнование, ответственность за решения, переговоры, бизнес и управление проектами. Готов(а) к разумному риску.",
-      jobs: ["предприниматель", "менеджер проектов", "маркетолог", "юрист", "PR-специалист", "продюсер", "руководитель отдела", "экономист", "дипломат", "риелтор", "event-менеджер", "финансовый консультант"],
-      subjects: ["обществознание", "экономика", "право", "иностранные языки", "русский язык", "математика"],
-      tryit: "школьное самоуправление, дебаты, бизнес-школы для подростков, организация школьных мероприятий, свой маленький проект или ярмарка" },
-    C: { name: "Конвенциональный", nick: "Организатор",
-      about: "Любит порядок, ясные правила и точность. Нравится работать с данными, документами и цифрами, наводить систему, доводить дело до конца без ошибок. Ценит стабильность и понятные задачи.",
-      jobs: ["бухгалтер", "аудитор", "финансовый аналитик", "логист", "специалист по базам данных", "системный администратор", "архивист", "нотариус", "банковский специалист", "специалист по кадрам", "корректор", "специалист по закупкам"],
-      subjects: ["математика", "информатика", "русский язык", "экономика"],
-      tryit: "курсы Excel и баз данных, ведение семейного или школьного бюджета, помощь в организации мероприятий и учёте, олимпиады по экономике" }
-  };
+  const SCALE_ME = ["Совсем не про меня", "Скорее не про меня", "И да, и нет", "Скорее про меня", "Точно про меня"];
+  const SCALE_AB = ["Точно А", "Скорее А", "Поровну", "Скорее Б", "Точно Б"];
 
-  const PAIR_HINTS = {
-    RI: "инженерия, медицина, IT-железо, геология", RA: "архитектура, ландшафтный и промышленный дизайн, ювелирное дело",
-    RS: "спорт, реабилитация, ветеринария, спасательные службы", RE: "строительный бизнес, агробизнес, управление производством",
-    RC: "техническая диагностика, логистика, лабораторный контроль", IA: "архитектура, научная журналистика, дизайн интерфейсов, геймдизайн",
-    IS: "медицина, психология, преподавание наук", IE: "аналитика, консалтинг, технологическое предпринимательство",
-    IC: "аналитика данных, программирование, финансы, фармацевтика", AS: "педагогика искусства, арт-терапия, театр, журналистика",
-    AE: "реклама, маркетинг, продюсирование, мода", AC: "вёрстка и редактура, UX-исследования, реставрация, архивное дело",
-    SE: "управление в образовании и HR, политика, event-индустрия", SC: "администрирование в медицине и образовании, кадровая работа",
-    EC: "финансы, банковское дело, юриспруденция, управление проектами"
-  };
+  // ---------- O*NET Interest Profiler Short Form: 60 items, 10 per RIASEC area, 0..4 points ----------
+  (function () {
+    const ORDER = ["R", "I", "A", "S", "E", "C"];
+    const ITEMS = {
+      R: ["Собирать кухонные шкафы", "Класть кирпич или плитку", "Ремонтировать бытовую технику", "Разводить рыбу в рыбном хозяйстве", "Собирать электронные устройства из деталей", "Водить грузовик и развозить посылки по офисам и домам", "Проверять качество деталей перед отправкой заказчику", "Ремонтировать и устанавливать замки", "Настраивать станки и работать на них на производстве", "Тушить лесные пожары"],
+      I: ["Разрабатывать новое лекарство", "Искать способы уменьшить загрязнение воды", "Проводить химические опыты", "Изучать движение планет", "Исследовать образцы крови под микроскопом", "Выяснять причину пожара", "Придумывать, как точнее предсказывать погоду", "Работать в биологической лаборатории", "Изобрести заменитель сахара", "Делать лабораторные анализы, чтобы находить болезни"],
+      A: ["Писать книги или пьесы", "Играть на музыкальном инструменте", "Сочинять музыку или делать аранжировки", "Рисовать картины", "Создавать спецэффекты для фильмов", "Расписывать декорации для спектаклей", "Писать сценарии для кино или сериалов", "Танцевать джаз или степ", "Петь в музыкальной группе", "Монтировать фильмы"],
+      S: ["Подбирать человеку комплекс упражнений и учить его выполнять", "Помогать людям с личными или эмоциональными трудностями", "Помогать людям с выбором профессии", "Проводить восстановительную терапию после травм и болезней", "Работать волонтёром в благотворительной организации", "Учить детей заниматься спортом", "Учить жестовому языку людей с нарушениями слуха", "Помогать вести групповые занятия с психологом", "Присматривать за детьми в детском саду", "Преподавать в старших классах школы"],
+      E: ["Покупать и продавать акции и облигации", "Управлять магазином", "Руководить салоном красоты или парикмахерской", "Руководить отделом в крупной компании", "Открыть собственный бизнес", "Вести переговоры о деловых контрактах", "Защищать интересы клиента в суде", "Продвигать на рынке новую коллекцию одежды", "Продавать товары в большом универмаге", "Управлять магазином одежды"],
+      C: ["Составлять электронные таблицы на компьютере", "Проверять документы и бланки на ошибки", "Устанавливать программы на компьютеры в большой сети", "Делать расчёты на калькуляторе", "Вести учёт поступающих и отправляемых грузов", "Рассчитывать зарплату сотрудникам", "Проводить инвентаризацию со сканером штрихкодов", "Вести учёт арендных платежей", "Вести складской учёт", "Сортировать и разносить почту в организации"]
+    };
+    const TYPES = {
+      R: { name: "Реалистичный", nick: "Практик", about: "Любит работать руками и видеть осязаемый результат: чинить, строить, собирать, управлять техникой. Часто нравится работа на свежем воздухе, с растениями, животными, инструментами и машинами. Меньше привлекают бумажная работа и долгие разговоры.",
+        jobs: ["инженер-механик", "архитектор", "ветеринар", "агроном", "пилот", "мастер-электроник", "реставратор", "ландшафтный дизайнер", "кинолог", "спасатель МЧС", "шеф-повар", "техник-робототехник"],
+        subjects: ["физика", "технология", "черчение", "биология", "физкультура"], tryit: "кружки робототехники и моделирования, туристические походы, юннаты, кулинарная студия, столярная или керамическая мастерская" },
+      I: { name: "Исследовательский", nick: "Мыслитель", about: "Любит разбираться, как всё устроено, ставить вопросы и искать на них ответы. Нравятся наблюдения, эксперименты, логические задачи, работа с идеями и фактами. Ценит самостоятельность и интеллектуальный вызов.",
+        jobs: ["врач", "биолог", "химик", "программист", "аналитик данных", "астрофизик", "фармацевт", "генетик", "эколог", "метеоролог", "криминалист", "психолог-исследователь"],
+        subjects: ["математика", "физика", "химия", "биология", "информатика"], tryit: "олимпиады, научные лагеря и смены, проектная работа в школе, онлайн-курсы по программированию, научно-популярные лекции и музеи" },
+      A: { name: "Артистический", nick: "Творец", about: "Любит создавать новое и выражать себя: через слова, рисунок, музыку, движение, образ. Нравится работа без жёстких шаблонов, где ценятся воображение и оригинальность.",
+        jobs: ["дизайнер", "иллюстратор", "архитектор", "журналист", "писатель", "режиссёр", "актриса", "музыкант", "фотограф", "видеомонтажёр", "дизайнер интерфейсов", "хореограф"],
+        subjects: ["литература", "русский язык", "ИЗО", "музыка", "МХК", "иностранные языки"], tryit: "художественная или музыкальная школа, театральная студия, школьная газета или блог, курсы видеомонтажа и дизайна" },
+      S: { name: "Социальный", nick: "Помощник", about: "Любит работать с людьми: учить, помогать, поддерживать, заботиться. Хорошо чувствует других, ценит общение, сотрудничество и пользу для общества.",
+        jobs: ["учитель", "психолог", "врач-педиатр", "медсестра", "логопед", "социальный работник", "тренер", "реабилитолог", "воспитатель", "HR-специалист", "профконсультант", "сурдопереводчик"],
+        subjects: ["обществознание", "литература", "биология", "история", "иностранные языки"], tryit: "волонтёрство, вожатство в лагере, помощь младшим с учёбой, школьное самоуправление, спортивные секции с командной работой" },
+      E: { name: "Предприимчивый", nick: "Лидер", about: "Любит начинать новое, вести за собой, убеждать и добиваться целей. Нравятся соревнование, ответственность за решения, переговоры, бизнес и управление проектами. Готов(а) к разумному риску.",
+        jobs: ["предприниматель", "менеджер проектов", "маркетолог", "юрист", "PR-специалист", "продюсер", "руководитель отдела", "экономист", "дипломат", "риелтор", "event-менеджер", "финансовый консультант"],
+        subjects: ["обществознание", "экономика", "право", "иностранные языки", "русский язык", "математика"], tryit: "школьное самоуправление, дебаты, бизнес-школы для подростков, организация школьных мероприятий, свой маленький проект или ярмарка" },
+      C: { name: "Конвенциональный", nick: "Организатор", about: "Любит порядок, ясные правила и точность. Нравится работать с данными, документами и цифрами, наводить систему, доводить дело до конца без ошибок. Ценит стабильность и понятные задачи.",
+        jobs: ["бухгалтер", "аудитор", "финансовый аналитик", "логист", "специалист по базам данных", "системный администратор", "архивист", "нотариус", "банковский специалист", "специалист по кадрам", "корректор", "специалист по закупкам"],
+        subjects: ["математика", "информатика", "русский язык", "экономика"], tryit: "курсы Excel и баз данных, ведение семейного или школьного бюджета, помощь в организации мероприятий и учёте, олимпиады по экономике" }
+    };
+    const PAIR = {
+      RI: "инженерия, медицина, IT-железо, геология", RA: "архитектура, ландшафтный и промышленный дизайн, ювелирное дело",
+      RS: "спорт, реабилитация, ветеринария, спасательные службы", RE: "строительный бизнес, агробизнес, управление производством",
+      RC: "техническая диагностика, логистика, лабораторный контроль", IA: "архитектура, научная журналистика, дизайн интерфейсов, геймдизайн",
+      IS: "медицина, психология, преподавание наук", IE: "аналитика, консалтинг, технологическое предпринимательство",
+      IC: "аналитика данных, программирование, финансы, фармацевтика", AS: "педагогика искусства, арт-терапия, театр, журналистика",
+      AE: "реклама, маркетинг, продюсирование, мода", AC: "вёрстка и редактура, UX-исследования, реставрация, архивное дело",
+      SE: "управление в образовании и HR, политика, event-индустрия", SC: "администрирование в медицине и образовании, кадровая работа",
+      EC: "финансы, банковское дело, юриспруденция, управление проектами"
+    };
 
-  const KEY = "onet-ip60-v1";
+    function drawHex(svg, sc) {
+      const cx = 180, cy = 165, r = 118;
+      const pt = (k, f) => { const a = -Math.PI / 2 + k * Math.PI / 3; return [cx + Math.cos(a) * r * f, cy + Math.sin(a) * r * f]; };
+      let h = "";
+      [0.25, 0.5, 0.75, 1].forEach(f => { h += `<polygon points="${ORDER.map((_, k) => pt(k, f).join(",")).join(" ")}" fill="none" stroke="var(--line)" stroke-width="1"/>`; });
+      ORDER.forEach((_, k) => { const [x, y] = pt(k, 1); h += `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="var(--line)"/>`; });
+      [10, 20, 30, 40].forEach(v => { const [x, y] = pt(0, v / 40); h += `<text x="${x + 4}" y="${y + 4}" class="lbl" style="font-size:9px">${v}</text>`; });
+      h += `<polygon points="${ORDER.map((t, k) => pt(k, Math.max(sc[t], 0.5) / 40).join(",")).join(" ")}" fill="var(--accent)" fill-opacity=".18" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round"/>`;
+      ORDER.forEach((t, k) => {
+        const [x, y] = pt(k, Math.max(sc[t], 0.5) / 40);
+        h += `<circle cx="${x}" cy="${y}" r="4.5" fill="var(--${t})"/>`;
+        const [lx, ly] = pt(k, 1.17);
+        const anchor = Math.abs(lx - cx) < 5 ? "middle" : (lx > cx ? "start" : "end");
+        h += `<text x="${lx}" y="${ly}" text-anchor="${anchor}" fill="var(--${t})">${t}</text>`;
+        h += `<text x="${lx}" y="${ly + 14}" text-anchor="${anchor}" class="lbl">${TYPES[t].nick} · ${sc[t]}</text>`;
+      });
+      svg.innerHTML = h;
+    }
+
+    const items = interleave(ITEMS, ORDER);
+    TESTS.push({
+      id: "onet", group: "Профессиональные интересы", title: "Профиль интересов RIASEC",
+      method: "O*NET Interest Profiler (Министерство труда США), модель Холланда", orig: true,
+      covers: "Holland RIASEC / O*NET, общие темы Strong Interest Inventory",
+      what: "Какие виды деятельности нравятся больше всего: шесть типов интересов и подходящие профессии.",
+      mins: 12, kind: "likert", prompt: "Насколько вам понравилось бы…",
+      scale: ["Очень не понравилось бы", "Не понравилось бы", "Не знаю", "Понравилось бы", "Очень понравилось бы"],
+      items,
+      compute(a) {
+        const sc = sums(items, a, v => v);
+        const top = rankKeys(sc, ORDER);
+        return { sc, top, code: top.slice(0, 3).join("") };
+      },
+      brief: r => `Код Холланда <b>${r.code}</b>: ${r.top.slice(0, 3).map(t => TYPES[t].nick.toLowerCase()).join(", ")}`,
+      text(r) {
+        const lines = [`Код Холланда: ${r.code}`];
+        r.top.forEach(t => lines.push(`  ${t} ${TYPES[t].name} (${TYPES[t].nick}): ${r.sc[t]} из 40`));
+        r.top.slice(0, 3).forEach(t => lines.push(`  ${TYPES[t].nick}: ${TYPES[t].jobs.slice(0, 8).join(", ")}`));
+        return lines.join("\n");
+      },
+      view(r) {
+        const sc = r.sc, top = r.top, max = sc[top[0]], min = sc[top[5]];
+        const pairKey = [top[0], top[1]].sort((x, y) => ORDER.indexOf(x) - ORDER.indexOf(y)).join("");
+        let note = "";
+        if (max <= 12) note = "Все баллы невысокие. Так бывает, когда интересы ещё формируются или большинство занятий пока незнакомы. Стоит пробовать новое и пройти тест ещё раз через полгода–год.";
+        else if (max - min <= 6) note = "Профиль ровный: интерес примерно одинаков ко многим областям. Это даёт широкий выбор. Помогут пробы в разных кружках.";
+        else if (sc[top[0]] - sc[top[1]] >= 8) note = `Ярко выражен один ведущий интерес: ${TYPES[top[0]].name.toLowerCase()} тип заметно опережает остальные.`;
+        return `
+          <div class="code">${top.slice(0, 3).map(t => `<span style="background:var(--${t})">${t}</span>`).join("")}</div>
+          <p class="muted">Три самых сильных интереса: ${top.slice(0, 3).map(t => `<b style="color:var(--${t})">${TYPES[t].nick.toLowerCase()}</b>`).join(", ")}. Первая буква весит больше всего.</p>
+          ${panel(`<svg class="hex" id="hexRes" viewBox="0 0 360 330" role="img" aria-label="Профиль интересов на шестиугольнике Холланда"></svg>
+            <div class="bars">${top.map(t => bar(`<b style="color:var(--${t})">${t}</b> ${TYPES[t].nick}`, sc[t], 40, `var(--${t})`)).join("")}</div>
+            <p class="note">Баллы от 0 до 40 по каждой области (10 вопросов × 0–4). Соседние на шестиугольнике типы похожи, противоположные сильнее всего различаются.</p>
+            ${note ? `<p>${note}</p>` : ""}`)}
+          ${top.slice(0, 3).map((t, k) => card(`${["ВЕДУЩИЙ", "ВТОРОЙ", "ТРЕТИЙ"][k]} ИНТЕРЕС · ${t} · ${sc[t]} из 40`, `${TYPES[t].name} тип: «${TYPES[t].nick}»`,
+            `<p>${TYPES[t].about}</p><dl><div><dt>Профессии</dt><dd>${chips(TYPES[t].jobs)}</dd></div><div><dt>Школьные предметы</dt><dd>${TYPES[t].subjects.join(", ")}</dd></div><div><dt>Что попробовать</dt><dd>${TYPES[t].tryit}</dd></div></dl>`, `var(--${t})`)).join("")}
+          ${panel(`<h2>Сочетание ${top[0]} + ${top[1]}</h2><p>Где сходятся два ведущих интереса: <b>${PAIR[pairKey]}</b>.</p>`)}
+          <details class="panel"><summary>Остальные области</summary>
+            ${top.slice(3).map(t => `<div style="display:flex;flex-direction:column;gap:6px"><h3 style="color:var(--${t})">${t} · ${TYPES[t].name} (${sc[t]})</h3><p class="muted">${TYPES[t].about}</p>${chips(TYPES[t].jobs.slice(0, 6))}</div>`).join("")}
+          </details>
+          <p class="note">Strong Interest Inventory построен на тех же шести темах Холланда. Его подробные шкалы платные; общий профиль RIASEC даёт этот тест.</p>`;
+      },
+      after(r) { const s = document.getElementById("hexRes"); if (s) drawHex(s, r.sc); }
+    });
+  })();
+
+  // ---------- IPIP Big-Five Factor Markers, 50 items (Goldberg, 1992; public domain). 1..5, reversed items 6-v ----------
+  (function () {
+    // [text, factor, reversed]; order and keys follow the IPIP 50-item sheet.
+    const RAW = [
+      ["Я душа компании", "E", 0], ["Меня мало заботят другие люди", "A", 1], ["У меня всегда всё подготовлено заранее", "C", 0], ["Я легко прихожу в состояние стресса", "N", 1], ["У меня богатый словарный запас", "O", 0],
+      ["Я говорю мало", "E", 1], ["Мне интересны люди", "A", 0], ["Я оставляю свои вещи где попало", "C", 1], ["Большую часть времени я чувствую себя спокойно", "N", 0], ["Мне трудно понимать абстрактные идеи", "O", 1],
+      ["Мне комфортно среди людей", "E", 0], ["Я могу обидеть человека резким словом", "A", 1], ["Я обращаю внимание на детали", "C", 0], ["Я часто волнуюсь из-за разных вещей", "N", 1], ["У меня живое воображение", "O", 0],
+      ["Я держусь в тени", "E", 1], ["Я сочувствую переживаниям других", "A", 0], ["У меня часто всё идёт кувырком", "C", 1], ["Мне редко бывает тоскливо", "N", 0], ["Мне неинтересны абстрактные идеи", "O", 1],
+      ["Мне легко начать разговор", "E", 0], ["Мне неинтересны чужие проблемы", "A", 1], ["Я делаю дела сразу, не откладывая", "C", 0], ["Меня легко выбить из колеи", "N", 1], ["У меня бывают отличные идеи", "O", 0],
+      ["Мне обычно нечего сказать", "E", 1], ["У меня мягкое сердце", "A", 0], ["Я часто забываю положить вещи на место", "C", 1], ["Я легко расстраиваюсь", "N", 1], ["У меня не очень хорошее воображение", "O", 1],
+      ["На праздниках я общаюсь со множеством разных людей", "E", 0], ["На самом деле другие люди мне не очень интересны", "A", 1], ["Я люблю порядок", "C", 0], ["Моё настроение часто меняется", "N", 1], ["Я быстро всё схватываю", "O", 0],
+      ["Я не люблю привлекать к себе внимание", "E", 1], ["Я нахожу время для других", "A", 0], ["Я увиливаю от своих обязанностей", "C", 1], ["У меня бывают резкие перепады настроения", "N", 1], ["Я использую сложные слова", "O", 0],
+      ["Я не против быть в центре внимания", "E", 0], ["Я чувствую эмоции других людей", "A", 0], ["Я живу по расписанию", "C", 0], ["Меня легко вывести из себя", "N", 1], ["Я люблю размышлять о разном", "O", 0],
+      ["С незнакомыми людьми я больше молчу", "E", 1], ["Рядом со мной людям спокойно и легко", "A", 0], ["В работе я добиваюсь точности", "C", 0], ["Мне часто бывает грустно", "N", 1], ["У меня много идей", "O", 0]
+    ];
+    const items = RAW.map(([text, k, r]) => ({ text, k, r }));
+    const ORDER = ["O", "C", "E", "A", "N"];
+    const F = {
+      O: { name: "Открытость опыту", alt: "интеллект и воображение", color: "var(--A)",
+        hi: "Любит идеи, фантазию, сложные вопросы и новое. Быстро схватывает, легко придумывает.",
+        mid: "Интерес к новому сочетается с опорой на проверенное.",
+        lo: "Предпочитает конкретное, практичное и понятное абстрактным рассуждениям.",
+        work: ["высокая открытость: наука, дизайн, исследования, медиа, стратегия", "низкая: практические профессии с понятным результатом и проверенными методами"] },
+      C: { name: "Добросовестность", alt: "организованность", color: "var(--C)",
+        hi: "Организованность, надёжность, планирование. Доводит дела до конца и следит за деталями.",
+        mid: "Может быть собранным, когда нужно, но без жёсткости.",
+        lo: "Гибкость и спонтанность, но порядок и сроки даются труднее.",
+        work: ["высокая: медицина, право, инженерия, финансы, управление проектами", "низкая: стоит заранее учиться планированию; подходят гибкие творческие форматы"] },
+      E: { name: "Экстраверсия", alt: "общительность", color: "var(--E)",
+        hi: "Энергию даёт общение. Легко знакомится, любит быть в центре событий.",
+        mid: "Комфортно и в компании, и наедине с собой.",
+        lo: "Энергию даёт тишина и сосредоточенность. Предпочитает немногих близких людей.",
+        work: ["высокая: продажи, преподавание, медиа, работа с клиентами, управление", "низкая: исследования, программирование, аналитика, дизайн, письменная работа"] },
+      A: { name: "Доброжелательность", alt: "сотрудничество", color: "var(--S)",
+        hi: "Тёплое отношение к людям, сочувствие, готовность помочь и уступить.",
+        mid: "Умеет и поддержать, и отстоять своё.",
+        lo: "Прямота, критичность, готовность спорить и конкурировать.",
+        work: ["высокая: медицина, педагогика, психология, социальная сфера, HR", "низкая: переговоры, право, аудит, конкурентный бизнес"] },
+      N: { name: "Эмоциональная устойчивость", alt: "спокойствие под нагрузкой", color: "var(--I)",
+        hi: "Спокойствие, ровное настроение, стресс переносится легко.",
+        mid: "Обычная реакция на стресс: волнуется, но восстанавливается.",
+        lo: "Чувствительность: переживания сильные, настроение меняется. Важно учиться справляться со стрессом.",
+        work: ["высокая: экстренные службы, авиация, управление, работа с кризисами", "низкая: лучше спокойная среда, поддерживающий коллектив, навыки саморегуляции"] }
+    };
+    TESTS.push({
+      id: "big5", group: "Профессиональная личность", title: "Большая пятёрка",
+      method: "IPIP Big-Five Factor Markers, 50 вопросов (Л. Голдберг, свободная методика)", orig: true,
+      covers: "SHL OPQ32, Hogan HPI (обе построены на модели «Большой пятёрки»)",
+      what: "Пять основных черт личности и какая рабочая роль им подходит.",
+      mins: 8, kind: "likert", prompt: "Насколько это утверждение про вас?", scale: SCALE_ME, items,
+      compute(a) {
+        const sc = sums(items, a, (v, it) => it.r ? 5 - v : v + 1);
+        const p = {}; ORDER.forEach(k => p[k] = pct(sc[k], 10, 50));
+        return { sc, p };
+      },
+      brief(r) {
+        const by = id => ORDER.filter(k => level(r.p[k]).id === id).map(k => F[k].name.toLowerCase());
+        const hi = by("hi"), lo = by("lo");
+        return [hi.length ? "выше среднего: " + hi.join(", ") : "", lo.length ? "ниже среднего: " + lo.join(", ") : ""].filter(Boolean).join("; ") || "все пять черт на среднем уровне";
+      },
+      text: r => ORDER.map(k => `  ${F[k].name}: ${r.sc[k]} из 50 (${level(r.p[k]).t})`).join("\n"),
+      view(r) {
+        return `
+          ${panel(`<div class="bars">${ORDER.map(k => bar(F[k].name, r.p[k], 100, F[k].color, r.sc[k])).join("")}</div>
+            <p class="note">Баллы от 10 до 50 (10 вопросов × 1–5). Уровень: ниже 26 низкий, 26–36 средний, выше 36 высокий. Российских норм для подростков у этой версии нет, это ориентир.</p>`)}
+          ${ORDER.map(k => { const L = level(r.p[k]); return card(`${F[k].alt.toUpperCase()} · ${r.sc[k]} ИЗ 50`, `${F[k].name}: <span class="lvl ${L.id === "hi" ? "hi" : ""}">${L.t}</span>`,
+            `<p>${F[k][L.id]}</p><p class="muted">В работе: ${L.id === "mid" ? F[k].work.join("; ") : F[k].work[L.id === "lo" ? 1 : 0]}.</p>`, F[k].color); }).join("")}
+          <p class="note">SHL OPQ32 и Hogan HPI платные; обе методики измеряют те же пять областей более подробно. Этот тест даёт открытую научную основу.</p>`;
+      }
+    });
+  })();
+
+  // ---------- Character strengths: 24 strengths of the VIA classification (Peterson & Seligman, 2004), 3 own items each ----------
+  (function () {
+    const V = [
+      { n: "Мудрость и знания", c: "var(--I)" }, { n: "Мужество", c: "var(--R)" }, { n: "Человечность", c: "var(--S)" },
+      { n: "Справедливость", c: "var(--E)" }, { n: "Умеренность", c: "var(--C)" }, { n: "Связь с миром", c: "var(--A)" }
+    ];
+    const S = [
+      { id: "creat", v: 0, n: "Креативность", d: "Придумывает новые идеи и способы делать привычное.", u: "Проекты, где нужно изобретать: дизайн, инженерия, реклама, наука.",
+        q: ["Я придумываю новые способы делать привычные вещи", "Друзья говорят, что у меня оригинальные идеи", "Мне нравится создавать что-то своё: текст, рисунок, проект"] },
+      { id: "curio", v: 0, n: "Любознательность", d: "Интерес ко всему новому, желание исследовать.", u: "Исследования, журналистика, путешествия, работа с меняющимися задачами.",
+        q: ["Мне интересно почти всё вокруг", "Я задаю много вопросов, чтобы разобраться", "Я люблю исследовать новые места и темы"] },
+      { id: "judg", v: 0, n: "Критическое мышление", d: "Взвешивает факты и разные точки зрения, прежде чем решить.", u: "Аналитика, право, медицина, экспертиза, наука.",
+        q: ["Прежде чем решить, я взвешиваю разные точки зрения", "Я могу изменить мнение, если вижу убедительные доводы", "Я проверяю факты, прежде чем поверить"] },
+      { id: "learn", v: 0, n: "Любовь к учёбе", d: "Радость от освоения новых знаний и навыков.", u: "Профессии с постоянным развитием: наука, IT, медицина, преподавание.",
+        q: ["Я радуюсь, когда узнаю что-то новое", "Я изучаю интересные темы и без школьных заданий", "Мне нравится разбираться в предмете глубоко"] },
+      { id: "persp", v: 0, n: "Мудрость", d: "Видит общую картину, к нему идут за советом.", u: "Консультирование, наставничество, управление, психология.",
+        q: ["Ко мне приходят за советом", "Я вижу общую картину, когда другие застревают в деталях", "Мне удаётся помочь людям посмотреть на проблему со стороны"] },
+      { id: "brave", v: 1, n: "Храбрость", d: "Не отступает перед трудностями и страхом, заступается за других.", u: "Экстренные службы, журналистика, правозащита, предпринимательство.",
+        q: ["Я заступаюсь за других, даже если это страшно", "Я говорю, что думаю, даже если это непопулярно", "Трудности меня не останавливают"] },
+      { id: "perse", v: 1, n: "Настойчивость", d: "Доводит начатое до конца, несмотря на препятствия.", u: "Долгие проекты: наука, спорт, инженерия, медицина, своё дело.",
+        q: ["Я довожу начатое до конца", "Если не получается, я пробую снова", "Меня трудно отвлечь от важной задачи"] },
+      { id: "hon", v: 1, n: "Честность", d: "Говорит правду, держит слово, остаётся собой.", u: "Роли, где важно доверие: финансы, право, медицина, руководство.",
+        q: ["Я говорю правду, даже когда это неудобно", "Для меня важно быть собой, а не казаться", "Я выполняю обещания"] },
+      { id: "zest", v: 1, n: "Энергичность", d: "Энтузиазм, живость, умение заряжать других.", u: "Активные роли: спорт, события, продажи, работа с детьми.",
+        q: ["Я берусь за дела с энтузиазмом", "Я просыпаюсь с желанием что-то делать", "Люди говорят, что я заряжаю энергией"] },
+      { id: "love", v: 2, n: "Способность любить", d: "Ценит близкие отношения и умеет их строить.", u: "Работа, где важна глубокая связь с людьми: семейная психология, медицина, педагогика.",
+        q: ["У меня есть люди, которым я могу доверить всё", "Я легко показываю близким, что они мне дороги", "Близкие отношения для меня очень важны"] },
+      { id: "kind", v: 2, n: "Доброта", d: "Помогает и заботится, не ожидая награды.", u: "Медицина, социальная работа, волонтёрство, ветеринария, сервис.",
+        q: ["Я помогаю другим, даже если меня не просят", "Мне приятно делать что-то хорошее для других", "Я замечаю, когда кому-то нужна помощь"] },
+      { id: "soc", v: 2, n: "Социальный интеллект", d: "Понимает чувства и мотивы людей, находит подход к каждому.", u: "Переговоры, HR, психология, продажи, управление командой.",
+        q: ["Я понимаю, что чувствуют другие, даже если они молчат", "Я умею найти подход к разным людям", "Я понимаю, почему люди поступают так, а не иначе"] },
+      { id: "team", v: 3, n: "Командность", d: "Хорошо работает в группе и вкладывается в общее дело.", u: "Командные проекты, спорт, медицина, производство, IT-команды.",
+        q: ["Я хорошо работаю в команде", "Я делаю свою часть общей работы, даже если она скучная", "Успех команды для меня важнее личного"] },
+      { id: "fair", v: 3, n: "Справедливость", d: "Относится ко всем честно и одинаково.", u: "Право, судейство, госслужба, HR, педагогика.",
+        q: ["Я отношусь ко всем одинаково честно", "Меня задевает, когда с кем-то поступают несправедливо", "Я учитываю интересы всех, когда принимаю решение"] },
+      { id: "lead", v: 3, n: "Лидерство", d: "Организует людей и ведёт их к цели.", u: "Управление, предпринимательство, организация событий, политика.",
+        q: ["В группе я часто беру на себя организацию", "Я умею вдохновить людей на общее дело", "Мне удаётся договориться так, чтобы все были вовлечены"] },
+      { id: "forg", v: 4, n: "Умение прощать", d: "Не держит обид, даёт второй шанс.", u: "Работа с людьми и конфликтами: медиация, педагогика, сервис.",
+        q: ["Я не держу обид", "Я даю людям второй шанс", "Мне легко простить, если человек искренне извинился"] },
+      { id: "humb", v: 4, n: "Скромность", d: "Не выставляет себя напоказ, ценит вклад других.", u: "Командные роли, исследования, поддержка и сервис.",
+        q: ["Я не люблю хвастаться своими успехами", "Я позволяю другим быть в центре внимания", "Я спокойно признаю, что кто-то знает больше меня"] },
+      { id: "prud", v: 4, n: "Благоразумие", d: "Думает о последствиях, планирует, избегает лишнего риска.", u: "Финансы, безопасность, медицина, инженерия, планирование.",
+        q: ["Я думаю о последствиях, прежде чем действовать", "Я избегаю неоправданного риска", "Я планирую заранее"] },
+      { id: "selfr", v: 4, n: "Самоконтроль", d: "Управляет эмоциями и привычками ради цели.", u: "Спорт, хирургия, авиация, любые профессии с дисциплиной.",
+        q: ["Я умею сдерживать эмоции, когда нужно", "Я могу отказаться от соблазна ради цели", "Мне удаётся соблюдать свой режим дня"] },
+      { id: "beauty", v: 5, n: "Чувство прекрасного", d: "Замечает красоту и мастерство в природе, искусстве, людях.", u: "Искусство, дизайн, архитектура, музейное дело, мода.",
+        q: ["Меня трогают красивая музыка, природа, искусство", "Я замечаю красоту в обычных вещах", "Меня восхищает, когда кто-то делает своё дело мастерски"] },
+      { id: "grat", v: 5, n: "Благодарность", d: "Замечает хорошее и умеет благодарить.", u: "Работа с людьми и в команде; помогает переносить нагрузку.",
+        q: ["Я часто чувствую благодарность за то, что у меня есть", "Я говорю людям спасибо от души", "Я замечаю хорошее, что происходит со мной"] },
+      { id: "hope", v: 5, n: "Оптимизм", d: "Верит в хорошее будущее и в результат своих усилий.", u: "Предпринимательство, продажи, коучинг, долгие проекты.",
+        q: ["Я верю, что у меня будет хорошее будущее", "Даже в трудной ситуации я жду лучшего", "Я знаю, что мои усилия приведут к результату"] },
+      { id: "humor", v: 5, n: "Чувство юмора", d: "Видит смешное и поднимает настроение другим.", u: "Медиа, сцена, работа с детьми, сервис, команды.",
+        q: ["Я умею рассмешить других", "Я вижу смешное даже в неприятных ситуациях", "Мне нравится поднимать людям настроение шутками"] },
+      { id: "spirit", v: 5, n: "Поиск смысла", d: "Чувство цели и ценностей, которые направляют выбор.", u: "Миссионерские профессии: образование, медицина, НКО, наука.",
+        q: ["У меня есть ощущение, что моя жизнь имеет смысл", "Я задумываюсь о том, для чего я живу", "Мои ценности помогают мне делать выбор"] }
+    ];
+    const ORDER = S.map(s => s.id), BY = {};
+    S.forEach(s => BY[s.id] = s);
+    const groups = {}; S.forEach(s => groups[s.id] = s.q);
+    const items = interleave(groups, ORDER);
+    TESTS.push({
+      id: "strengths", group: "Сильные стороны", title: "Сильные стороны характера",
+      method: "24 сильные стороны по классификации VIA (К. Петерсон, М. Селигман); вопросы составлены для приложения", orig: false,
+      covers: "Gallup CliftonStrengths",
+      what: "Пять «подписных» сильных сторон, на которые стоит опираться в учёбе и работе.",
+      mins: 12, kind: "likert", prompt: "Насколько это утверждение про вас?", scale: SCALE_ME, items,
+      compute(a) {
+        const sc = sums(items, a);
+        return { sc, top: rankKeys(sc, ORDER) };
+      },
+      brief: r => "Топ-5: " + r.top.slice(0, 5).map(id => BY[id].n.toLowerCase()).join(", "),
+      text: r => "  Топ-5: " + r.top.slice(0, 5).map(id => `${BY[id].n} (${r.sc[id]}/15)`).join(", "),
+      view(r) {
+        const vAvg = V.map((v, i) => { const xs = S.filter(s => s.v === i); return { n: v.n, c: v.c, s: xs.reduce((t, s) => t + r.sc[s.id], 0) / xs.length }; });
+        return `
+          <div class="chips">${r.top.slice(0, 5).map(id => `<span style="border-color:${V[BY[id].v].c}"><b>${BY[id].n}</b></span>`).join("")}</div>
+          ${r.top.slice(0, 5).map((id, k) => card(`СИЛЬНАЯ СТОРОНА №${k + 1} · ${V[BY[id].v].n.toUpperCase()} · ${r.sc[id]} ИЗ 15`, BY[id].n,
+            `<p>${BY[id].d}</p><p class="muted">Где пригодится: ${BY[id].u}</p>`, V[BY[id].v].c)).join("")}
+          ${panel(`<h2>Шесть групп достоинств</h2><div class="bars">${vAvg.map(v => bar(v.n, v.s - 3, 12, v.c, v.s.toFixed(1))).join("")}</div>
+            <p class="note">Средний балл по сильным сторонам группы, от 3 до 15.</p>`)}
+          <details class="panel"><summary>Все 24 сильные стороны</summary>
+            <div class="bars">${r.top.map(id => bar(BY[id].n, r.sc[id] - 3, 12, V[BY[id].v].c, r.sc[id])).join("")}</div>
+          </details>
+          ${panel(`<h2>Как пользоваться</h2><ul class="tips"><li>Сильные стороны из топ-5 даются легко и заряжают. Ищите учёбу и работу, где они нужны каждый день.</li><li>Нижние строки не слабости, а то, что пока используется реже.</li><li>Gallup CliftonStrengths платный и описывает 34 таланта. Здесь открытая модель VIA из 24 сильных сторон; вопросы составлены для приложения, норм нет.</li></ul>`)}`;
+      }
+    });
+  })();
+
+  // ---------- Jungian type, 4 dichotomies × 8 paired statements (own items in the spirit of OEJTS). 0 = A side, 4 = B side ----------
+  (function () {
+    const G = {
+      EI: [["После общения с людьми я чувствую прилив сил", "После общения с людьми мне нужно время в тишине"], ["Я думаю вслух, обсуждая с другими", "Я сначала обдумываю про себя, потом говорю"], ["Я легко знакомлюсь с новыми людьми", "Мне нужно время, чтобы привыкнуть к новым людям"], ["Люблю большие компании", "Предпочитаю общение с одним-двумя близкими"], ["Мне нравится быть в гуще событий", "Мне нравится наблюдать со стороны"], ["Свободное время лучше провести с друзьями", "Свободное время лучше провести наедине с любимым делом"], ["Меня знают многие", "Меня хорошо знают немногие"], ["Я быстро перехожу к делу", "Я долго обдумываю, прежде чем действовать"]],
+      SN: [["Мне важны факты и детали", "Мне важны идеи и общая картина"], ["Я доверяю опыту", "Я доверяю интуиции и догадкам"], ["Люблю понятные пошаговые инструкции", "Люблю задачи, где нужно придумать свой путь"], ["Меня интересует то, что есть сейчас", "Меня интересует то, что может быть в будущем"], ["Я описываю вещи конкретно и буквально", "Я описываю вещи через сравнения и образы"], ["Предпочитаю проверенные способы", "Предпочитаю пробовать новые способы"], ["Практическая польза важнее теории", "Интересная теория ценна сама по себе"], ["Я замечаю, что меня окружает", "Я часто погружаюсь в свои мысли и фантазии"]],
+      TF: [["Решая, я опираюсь на логику", "Решая, я опираюсь на чувства и ценности"], ["Справедливое правило важнее сочувствия", "Сочувствие важнее строгих правил"], ["Я говорю прямо, даже если это неприятно", "Я подбираю слова, чтобы не обидеть"], ["Критику я воспринимаю как полезную информацию", "Критику я принимаю близко к сердцу"], ["В споре важнее найти истину", "В споре важнее сохранить хорошие отношения"], ["Меня убеждают аргументы", "Меня убеждают искренность и личный пример"], ["Я анализирую, почему что-то не работает", "Я думаю, как ситуация повлияет на людей"], ["Хвалить стоит за результат", "Хвалить стоит за старание"]],
+      JP: [["Я люблю заранее всё планировать", "Я люблю действовать по обстоятельствам"], ["Я делаю задания заранее", "Я делаю задания в последний момент, на подъёме"], ["Мне спокойнее, когда решение принято", "Мне нравится оставлять варианты открытыми"], ["У меня порядок на столе и в вещах", "У меня творческий беспорядок"], ["Списки дел мне помогают", "Списки дел меня сковывают"], ["Я заканчиваю одно дело, прежде чем начать другое", "Я веду несколько дел одновременно"], ["Неожиданные перемены в планах меня раздражают", "Неожиданные перемены в планах меня бодрят"], ["Правила нужны, чтобы их соблюдать", "Правила можно гибко менять под ситуацию"]]
+    };
+    const DIMS = ["EI", "SN", "TF", "JP"];
+    const POLE = { E: "Экстраверсия", I: "Интроверсия", S: "Ощущение", N: "Интуиция", T: "Мышление", F: "Чувство", J: "Суждение", P: "Восприятие" };
+    const DIMN = { EI: "Откуда берётся энергия", SN: "Как воспринимается информация", TF: "Как принимаются решения", JP: "Как организована жизнь" };
+    const T16 = {
+      ISTJ: ["Хранитель порядка", "Надёжный и последовательный, опирается на факты, правила и проверенный опыт.", ["бухгалтер", "аудитор", "инженер по качеству", "юрист", "логист", "военный"]],
+      ISFJ: ["Заботливый защитник", "Внимателен к людям, ответственен, заботится практично и незаметно.", ["медсестра", "учитель начальных классов", "социальный работник", "фармацевт", "библиотекарь"]],
+      INFJ: ["Наставник", "Глубоко понимает людей, держится сильных ценностей, видит, каким может быть будущее.", ["психолог", "писатель", "профконсультант", "преподаватель", "UX-исследователь"]],
+      INTJ: ["Стратег", "Мыслит независимо, строит системы и долгосрочные планы.", ["учёный", "архитектор ПО", "инженер", "аналитик", "стратегический консультант"]],
+      ISTP: ["Мастер", "Спокойный практик, разбирается в устройстве вещей и решает задачи на месте.", ["инженер-механик", "пилот", "хирург", "специалист по кибербезопасности", "техник"]],
+      ISFP: ["Художник", "Чуткий, живёт настоящим, выражает себя через дело и красоту.", ["дизайнер", "фотограф", "ветеринар", "флорист", "кондитер"]],
+      INFP: ["Идеалист", "Верен своим ценностям, богатое воображение, ищет смысл в том, что делает.", ["писатель", "психолог", "иллюстратор", "редактор", "специалист НКО"]],
+      INTP: ["Мыслитель", "Любит теории и логические загадки, хочет понять, как всё устроено.", ["программист", "математик", "физик", "аналитик данных", "философ"]],
+      ESTP: ["Деятель", "Энергичный, любит действие, риск и быстрые решения.", ["предприниматель", "спасатель", "менеджер по продажам", "спортивный тренер", "оператор"]],
+      ESFP: ["Артист", "Общительный и жизнерадостный, умеет создать праздник.", ["актёр", "ведущий", "event-менеджер", "специалист по туризму", "хореограф"]],
+      ENFP: ["Вдохновитель", "Энтузиаст новых идей и людей, повсюду видит возможности.", ["журналист", "маркетолог", "PR-специалист", "педагог", "продюсер"]],
+      ENTP: ["Изобретатель", "Генератор идей и любитель споров, ищет интеллектуальный вызов.", ["предприниматель", "юрист", "продакт-менеджер", "изобретатель", "политолог"]],
+      ESTJ: ["Организатор", "Деловой, управляет людьми и процессами, ценит порядок и результат.", ["руководитель", "менеджер проектов", "офицер", "финансист", "судья"]],
+      ESFJ: ["Опора коллектива", "Тёплый и отзывчивый, заботится о гармонии в группе.", ["учитель", "HR-специалист", "врач", "администратор", "социальный педагог"]],
+      ENFJ: ["Лидер-вдохновитель", "Харизматичный, помогает другим расти и объединяет их.", ["учитель", "психолог", "HR-директор", "тренер команд", "политик"]],
+      ENTJ: ["Командир", "Решительный стратег, любит строить и вести за собой.", ["руководитель компании", "предприниматель", "юрист", "консультант", "менеджер продукта"]]
+    };
+    const groups = {}; DIMS.forEach(d => groups[d] = G[d].map(([a, b]) => ({ a, b })));
+    const items = interleave(groups, DIMS);
+    TESTS.push({
+      id: "type", group: "Профессиональная личность", title: "Психологический тип",
+      method: "Типология К. Юнга, 4 шкалы по образцу открытой OEJTS; утверждения составлены для приложения", orig: false,
+      covers: "MBTI",
+      what: "Четырёхбуквенный тип: как вы получаете энергию, воспринимаете информацию, принимаете решения и организуете дела.",
+      mins: 6, kind: "bipolar", prompt: "Что больше похоже на вас?", scale: SCALE_AB, items,
+      compute(a) {
+        const sc = sums(items, a, v => v);
+        let code = "";
+        const cl = {};
+        DIMS.forEach(d => { code += sc[d] < 16 ? d[0] : d[1]; cl[d] = Math.round(Math.abs(sc[d] - 16) / 16 * 100); });
+        return { sc, code, cl };
+      },
+      brief: r => `Тип <b>${r.code}</b>: ${T16[r.code][0].toLowerCase()}`,
+      text: r => `  Тип ${r.code} («${T16[r.code][0]}»); выраженность: ${DIMS.map(d => `${r.code[DIMS.indexOf(d)]} ${r.cl[d]}%`).join(", ")}`,
+      view(r) {
+        const t = T16[r.code];
+        return `
+          <div class="code">${r.code.split("").map(ch => `<span>${ch}</span>`).join("")}</div>
+          ${card(`ТИП ${r.code}`, `«${t[0]}»`, `<p>${t[1]}</p><dl><div><dt>Профессии</dt><dd>${chips(t[2])}</dd></div></dl>`)}
+          ${panel(`<h2>Четыре шкалы</h2>${DIMS.map(d => `<div class="axis"><span class="eyebrow">${DIMN[d]}</span>
+            <div class="ends"><span><b>${d[0]}</b> ${POLE[d[0]]}</span><span>${POLE[d[1]]} <b>${d[1]}</b></span></div>
+            <div class="line"><i style="left:${r.sc[d] / 32 * 100}%"></i></div>
+            <span class="note">${r.cl[d] < 20 ? "Почти поровну: предпочтение слабое" : r.cl[d] < 50 ? "Умеренное предпочтение" : "Ясное предпочтение"} (${r.cl[d]}%)</span></div>`).join("")}`)}
+          <p class="note">MBTI является платной методикой The Myers-Briggs Company. Здесь открытая версия той же типологии Юнга, без норм. Тип описывает предпочтения, а не способности, и с возрастом может меняться. Если какая-то шкала почти посередине, прочитайте описания обоих соседних типов.</p>`;
+      }
+    });
+  })();
+
+  // ---------- Behaviour under stress: 11 patterns of the Hogan HDS model, 3 own items each, 1..5 → 3..15 ----------
+  (function () {
+    const R = [
+      { id: "exc", n: "Эмоциональные качели", plus: "энтузиазм и искренность", look: "раздражается, быстро загорается и так же быстро остывает", help: "пауза перед реакцией, режим сна и отдыха, разговор о чувствах до того, как они накопились",
+        q: ["Когда что-то идёт не так, я быстро раздражаюсь", "Я легко загораюсь новым делом и так же быстро в нём разочаровываюсь", "Под давлением мне трудно сохранять спокойствие"] },
+      { id: "skep", n: "Недоверие", plus: "проницательность, трудно обмануть", look: "ищет подвох, воспринимает критику как нападение", help: "проверять факты, прежде чем делать выводы; спрашивать о намерениях напрямую",
+        q: ["Я подозреваю, что у людей есть скрытые мотивы", "Мне трудно доверять людям, пока они не докажут свою надёжность", "Критику в свой адрес я часто воспринимаю как нападку"] },
+      { id: "caut", n: "Страх ошибки", plus: "осмотрительность и аккуратность", look: "откладывает решения, избегает нового", help: "маленькие шаги и пробы без высоких ставок; правило «лучше сделать, чем идеально»",
+        q: ["Я откладываю решение, если боюсь ошибиться", "Я избегаю нового, если не знаю, получится ли", "Мне трудно рискнуть, даже когда шанс хороший"] },
+      { id: "res", n: "Уход в себя", plus: "независимость и хладнокровие", look: "замыкается, перестаёт делиться и просить помощи", help: "заранее договориться, кому можно написать в трудный момент; говорить о планах вслух",
+        q: ["Под нагрузкой я закрываюсь и ни с кем не разговариваю", "Когда трудно, я ни у кого не прошу помощи", "Окружающие иногда считают меня холодным человеком"] },
+      { id: "leis", n: "Скрытое сопротивление", plus: "самостоятельность и спокойствие", look: "соглашается вслух, но тянет время и делает по-своему", help: "честно говорить «нет» или «давай иначе»; договариваться о сроках заранее",
+        q: ["Если меня заставляют делать что-то, я тяну время", "Я соглашаюсь вслух, но делаю по-своему", "Меня раздражает, когда мне указывают, как делать"] },
+      { id: "bold", n: "Самоуверенность", plus: "уверенность и амбиции", look: "не признаёт ошибок, переоценивает свои силы", help: "просить обратную связь; разбирать ошибки как опыт, а не как поражение",
+        q: ["Я почти всегда знаю, как сделать лучше других", "Мне трудно признать свою ошибку", "Я считаю, что правила не всегда должны касаться меня"] },
+      { id: "misc", n: "Азарт и риск", plus: "смелость и обаяние", look: "проверяет границы, действует импульсивно", help: "правило «подумать до утра» для важных решений; оценивать последствия вместе с кем-то",
+        q: ["Мне нравится проверять, насколько далеко можно зайти", "Ради интереса я могу нарушить правила", "Я часто действую импульсивно, а потом думаю"] },
+      { id: "col", n: "Жажда внимания", plus: "яркость, умение выступать", look: "перетягивает внимание, берётся за многое и не доводит", help: "выбирать меньше дел, но доводить их; давать слово другим",
+        q: ["Мне важно, чтобы меня замечали", "Я перебиваю других, чтобы рассказать своё", "Я берусь за многое, чтобы быть на виду, и не всё довожу до конца"] },
+      { id: "imag", n: "Витание в облаках", plus: "креативность и нестандартность", look: "увлекается идеями, забывает о практической стороне", help: "к каждой идее записывать первый практический шаг и срок",
+        q: ["Мои идеи часто кажутся другим странными", "Я увлекаюсь идеей и забываю о практической стороне", "Мне скучно делать так, как принято"] },
+      { id: "dil", n: "Перфекционизм", plus: "качество и ответственность", look: "переделывает бесконечно, не доверяет другим, расстраивается из-за мелочей", help: "заранее решать, что значит «достаточно хорошо»; делегировать части работы",
+        q: ["Я переделываю работу, пока она не станет идеальной", "Мне трудно доверить дело другим: сделают не так", "Я расстраиваюсь из-за мелких недочётов"] },
+      { id: "dut", n: "Угодливость", plus: "лояльность и тактичность", look: "не может отказать, живёт чужими ожиданиями", help: "тренировать вежливое «нет»; спрашивать себя «а чего хочу я?»",
+        q: ["Мне трудно сказать «нет», даже если неудобно", "Я делаю то, чего от меня ждут, а не то, чего хочется мне", "Я избегаю споров, даже когда думаю иначе"] }
+    ];
+    const ORDER = R.map(x => x.id), BY = {}; R.forEach(x => BY[x.id] = x);
+    const groups = {}; R.forEach(x => groups[x.id] = x.q);
+    const items = interleave(groups, ORDER);
+    const lv = s => s >= 12 ? { id: "risk", t: "заметно" } : s >= 9 ? { id: "", t: "умеренно" } : { id: "", t: "слабо" };
+    TESTS.push({
+      id: "risks", group: "Профессиональная личность", title: "Поведение под стрессом",
+      method: "11 моделей поведения под нагрузкой по модели Hogan HDS; вопросы составлены для приложения", orig: false,
+      covers: "Hogan Development Survey (риски поведения)",
+      what: "Как проявляется характер, когда трудно: какие привычки мешают и что помогает.",
+      mins: 6, kind: "likert", prompt: "Насколько это утверждение про вас?", scale: SCALE_ME, items,
+      compute(a) { const sc = sums(items, a); return { sc, top: rankKeys(sc, ORDER) }; },
+      brief(r) { const z = r.top.filter(id => r.sc[id] >= 12); return z.length ? "Заметно: " + z.slice(0, 3).map(id => BY[id].n.toLowerCase()).join(", ") : "Ярких зон риска нет"; },
+      text: r => "  " + r.top.slice(0, 3).map(id => `${BY[id].n}: ${r.sc[id]}/15 (${lv(r.sc[id]).t})`).join("; "),
+      view(r) {
+        const focus = r.top.filter(id => r.sc[id] >= 9).slice(0, 3);
+        return `
+          ${focus.length ? focus.map(id => { const x = BY[id], L = lv(r.sc[id]); return card(`${r.sc[id]} ИЗ 15 · ПРОЯВЛЯЕТСЯ ${L.t.toUpperCase()}`, x.n,
+            `<dl><div><dt>Как выглядит под стрессом</dt><dd>${x.look}</dd></div><div><dt>Обратная сторона, сильная</dt><dd>${x.plus}</dd></div><div><dt>Что помогает</dt><dd>${x.help}</dd></div></dl>`, L.id ? "var(--risk)" : "var(--E)"); }).join("")
+            : panel(`<h2>Ярких зон риска нет</h2><p>Ни одна модель поведения не набрала 9 баллов и больше. Под нагрузкой характер, скорее всего, остаётся ровным.</p>`)}
+          ${panel(`<h2>Все 11 моделей</h2><div class="bars">${r.top.map(id => bar(BY[id].n, r.sc[id] - 3, 12, r.sc[id] >= 12 ? "var(--risk)" : r.sc[id] >= 9 ? "var(--E)" : "var(--C)", r.sc[id])).join("")}</div>
+            <p class="note">От 3 до 15. 12 и выше: проявляется заметно, 9–11: умеренно.</p>`)}
+          <p class="note">Это не медицинский и не клинический тест. Каждая модель поведения — продолжение сильной стороны, которая под стрессом становится чрезмерной. Hogan HDS платный и нормирован на взрослых; здесь упрощённая открытая версия для разговора.</p>`;
+      }
+    });
+  })();
+
+  // ---------- Career anchors: 8 anchors of E. Schein, 4 own items each, 1..5 → 4..20 ----------
+  (function () {
+    const A = [
+      { id: "TF", n: "Профессионализм", d: "Важно стать настоящим экспертом и чтобы ценили за мастерство.", w: "углубляться в одну профессию, расти как специалист, а не как начальник" ,
+        q: ["Стать настоящим экспертом в своём деле", "Чтобы меня ценили за мастерство, а не за должность", "Постоянно совершенствоваться в выбранной профессии", "Делать то, что я умею лучше всего"] },
+      { id: "GM", n: "Управление", d: "Важно руководить, отвечать за общий результат и влиять на решения.", w: "управленческая карьера, менеджмент, руководство проектами",
+        q: ["Руководить людьми и отвечать за результат команды", "Дорасти до руководящей должности", "Принимать решения, от которых зависит работа многих", "Объединять усилия разных людей ради общей цели"] },
+      { id: "AU", n: "Автономия", d: "Важно самому решать, как, когда и где работать.", w: "фриланс, своя практика, наука, консалтинг, гибкий график",
+        q: ["Решать самостоятельно, как и когда работать", "Не зависеть от правил и распорядка организации", "Свободный график или работа на себя", "Чтобы никто не стоял над душой"] },
+      { id: "SE", n: "Стабильность", d: "Важны надёжность, предсказуемость и гарантии.", w: "госслужба, крупные компании, медицина, образование, банки",
+        q: ["Надёжная работа без риска её потерять", "Стабильный доход и социальные гарантии", "Работать в одной организации долгие годы", "Жить и работать в одном городе, рядом с близкими"] },
+      { id: "EC", n: "Предпринимательство", d: "Важно создать своё: продукт, проект, компанию.", w: "своё дело, стартапы, запуск новых направлений",
+        q: ["Создать собственное дело", "Придумать продукт или проект, который будет моим", "Рисковать ради большой идеи", "Строить что-то новое с нуля"] },
+      { id: "SV", n: "Служение", d: "Важно, чтобы работа приносила пользу людям и миру.", w: "медицина, образование, экология, НКО, социальная сфера",
+        q: ["Чтобы работа делала мир лучше", "Помогать людям, даже если платят меньше", "Работа, которая соответствует моим ценностям", "Чувствовать, что моя работа нужна обществу"] },
+      { id: "CH", n: "Вызов", d: "Важно решать трудные задачи и побеждать.", w: "сложные проекты, спорт, консалтинг, военная сфера, конкурентный бизнес",
+        q: ["Решать задачи, которые другим не по силам", "Соревноваться и побеждать", "Браться за самые сложные проекты", "Преодолевать трудности, которые кажутся непреодолимыми"] },
+      { id: "LS", n: "Баланс жизни", d: "Важно, чтобы работа оставляла место семье и увлечениям.", w: "гибкие форматы, удалёнка, профессии с предсказуемой нагрузкой",
+        q: ["Чтобы работа оставляла время на семью и увлечения", "Совмещать карьеру и личную жизнь без ущерба", "Не жертвовать отдыхом ради карьеры", "Гибкость, чтобы подстроить работу под жизнь"] }
+    ];
+    const ORDER = A.map(x => x.id), BY = {}; A.forEach(x => BY[x.id] = x);
+    const groups = {}; A.forEach(x => groups[x.id] = x.q);
+    const items = interleave(groups, ORDER);
+    TESTS.push({
+      id: "anchors", group: "Карьерные ориентиры", title: "Якоря карьеры",
+      method: "Восемь карьерных якорей Э. Шейна; вопросы адаптированы для выпускника", orig: false,
+      covers: "Career Anchors (Эдгар Шейн)",
+      what: "Что для вас главное в будущей работе: мастерство, свобода, стабильность, польза людям…",
+      mins: 6, kind: "likert", prompt: "Насколько это важно для вашей будущей работы?",
+      scale: ["Совсем не важно", "Скорее не важно", "Отчасти важно", "Важно", "Очень важно"], items,
+      compute(a) { const sc = sums(items, a); return { sc, top: rankKeys(sc, ORDER) }; },
+      brief: r => "Главное: " + r.top.slice(0, 2).map(id => BY[id].n.toLowerCase()).join(" и "),
+      text: r => "  " + r.top.slice(0, 3).map(id => `${BY[id].n} ${r.sc[id]}/20`).join(", "),
+      view(r) {
+        return `
+          ${r.top.slice(0, 2).map((id, k) => card(`${k ? "ВТОРОЙ" : "ГЛАВНЫЙ"} ЯКОРЬ · ${r.sc[id]} ИЗ 20`, BY[id].n,
+            `<p>${BY[id].d}</p><p class="muted">Что подходит: ${BY[id].w}.</p>`, k ? "var(--I)" : "var(--accent)")).join("")}
+          ${panel(`<h2>Все якоря</h2><div class="bars">${r.top.map(id => bar(BY[id].n, r.sc[id] - 4, 16, "var(--accent)", r.sc[id])).join("")}</div>
+            <p class="note">От 4 до 20. По Шейну у человека обычно один главный якорь: от него труднее всего отказаться, когда приходится выбирать. У выпускника якоря только складываются, поэтому важна общая картина.</p>`)}
+          ${panel(`<h2>Как использовать</h2><p>При выборе вуза и первой работы проверяйте: даст ли это то, что в верхних строках? Если главный якорь «Стабильность», а выбирается рискованный стартап, внутренний конфликт почти неизбежен.</p>`)}`;
+      }
+    });
+  })();
+
+  // ---------- Comfortable work environment: 7 bipolar dimensions × 3 own pairs, 0..4 each → 0..12, midpoint 6 ----------
+  (function () {
+    const D = [
+      { id: "ppl", n: "Люди вокруг", a: "в команде, в постоянном общении", b: "самостоятельно, в тишине",
+        q: [["Работать в команде, постоянно общаясь", "Работать самостоятельно, в тишине"], ["Обсуждать задачи с коллегами", "Получить задачу и спокойно выполнить её в одиночку"], ["Офис, где вокруг много людей", "Отдельный кабинет или удалённая работа"]] },
+      { id: "str", n: "Структура", a: "чёткие правила и инструкции", b: "свобода выбирать способ работы",
+        q: [["Чёткие инструкции и правила", "Свобода выбирать, как работать"], ["Понятная должностная инструкция", "Роль, которая меняется под задачи"], ["Руководитель, который ставит ясные задачи", "Руководитель, который доверяет и не контролирует"]] },
+      { id: "pace", n: "Темп", a: "спокойный и размеренный", b: "быстрый, с дедлайнами",
+        q: [["Спокойный, размеренный ритм", "Быстрый темп и дедлайны"], ["Одна задача, которой можно заниматься долго", "Много коротких задач подряд"], ["Время подумать перед решением", "Решения на ходу"]] },
+      { id: "var", n: "Перемены", a: "стабильность и привычные задачи", b: "новизна и разнообразие",
+        q: [["Стабильная работа на годы вперёд", "Новые проекты и перемены"], ["Привычные задачи, которые хорошо умею", "Новые задачи, где придётся учиться"], ["Предсказуемый график", "Гибкий, меняющийся график"]] },
+      { id: "place", n: "Место и формат", a: "за столом, с информацией", b: "в движении, с предметами и техникой",
+        q: [["В помещении, за компьютером", "В движении, на выездах, на улице"], ["Работа с информацией и документами", "Работа с предметами, техникой, материалами"], ["Сидячая работа", "Физически активная работа"]] },
+      { id: "rec", n: "Признание", a: "публичность и соревнование", b: "работа за кадром и сотрудничество",
+        q: [["Важны похвала и признание", "Важно внутреннее удовлетворение от дела"], ["Публичные выступления, быть на виду", "Работа за кадром"], ["Соревнование и рейтинги", "Сотрудничество без соревнования"]] },
+      { id: "risk", n: "Доход и риск", a: "надёжность и стабильная зарплата", b: "риск ради большего результата",
+        q: [["Стабильная зарплата", "Доход зависит от результата, но может быть выше"], ["Надёжная крупная компания", "Молодой проект или своё дело"], ["Чёткая карьерная лестница", "Карьера, которую придумываю по ходу"]] }
+    ];
+    const ORDER = D.map(x => x.id);
+    const groups = {}; D.forEach(x => groups[x.id] = x.q.map(([a, b]) => ({ a, b })));
+    const items = interleave(groups, ORDER);
+    const side = s => s <= 3 ? -2 : s <= 5 ? -1 : s === 6 ? 0 : s <= 8 ? 1 : 2;
+    const phrase = (x, s) => { const k = side(s); return k === 0 ? "без выраженного предпочтения" : (Math.abs(k) === 2 ? "явно " : "скорее ") + (k < 0 ? x.a : x.b); };
+    TESTS.push({
+      id: "env", group: "Комфортная рабочая среда", title: "Рабочая среда",
+      method: "Потребности в рабочей среде по идее метода Birkman; вопросы составлены для приложения", orig: false,
+      covers: "Birkman Method",
+      what: "В какой обстановке будет комфортно работать: люди, структура, темп, перемены, формат, признание, риск.",
+      mins: 5, kind: "bipolar", prompt: "Что вам больше подходит?", scale: SCALE_AB, items,
+      compute(a) { return { sc: sums(items, a, v => v) }; },
+      brief: r => D.filter(x => Math.abs(side(r.sc[x.id])) === 2).slice(0, 3).map(x => phrase(x, r.sc[x.id]).replace("явно ", "")).join("; ") || "Гибкие предпочтения",
+      text: r => D.map(x => `  ${x.n}: ${phrase(x, r.sc[x.id])}`).join("\n"),
+      view(r) {
+        return `
+          ${panel(`<h2>Идеальная среда</h2><ul class="tips">${D.map(x => `<li><b>${x.n}:</b> ${phrase(x, r.sc[x.id])}</li>`).join("")}</ul>`)}
+          ${panel(`<h2>Шкалы</h2>${D.map(x => `<div class="axis"><span class="eyebrow">${x.n}</span>
+            <div class="ends"><span>${x.a}</span><span style="text-align:right">${x.b}</span></div>
+            <div class="line"><i style="left:${r.sc[x.id] / 12 * 100}%"></i></div></div>`).join("")}`)}
+          ${panel(`<h2>Как использовать</h2><p>Одна и та же профессия бывает в очень разной среде. Дизайнер может работать в шумном агентстве или на фрилансе, врач в скорой или в лаборатории. Сверяйте с этим списком не только профессию, но и конкретное место работы.</p>`)}
+          <p class="note">Birkman Method платный и измеряет интересы, потребности и поведение на нормированной выборке. Здесь открытая упрощённая версия про рабочую среду.</p>`;
+      }
+    });
+  })();
+
+  // ---------- Abilities: 4 own subtests with right answers (verbal, numerical, logical, spatial) ----------
+  (function () {
+    function shape(cells, rot, mir) {
+      const u = 15, xs = cells.map(c => c[0]), ys = cells.map(c => c[1]);
+      const cx = (Math.min(...xs) + Math.max(...xs) + 1) * u / 2, cy = (Math.min(...ys) + Math.max(...ys) + 1) * u / 2;
+      return `<svg class="shape" viewBox="0 0 100 100" aria-hidden="true"><g transform="translate(50 50) rotate(${rot}) scale(${mir ? -1 : 1} 1) translate(${-cx} ${-cy})">${cells.map(([x, y]) => `<rect x="${x * u + .75}" y="${y * u + .75}" width="${u - 1.5}" height="${u - 1.5}" rx="2"/>`).join("")}</g></svg>`;
+    }
+    const txt = (k, q, opts, ans) => ({ k, qhtml: esc(q), opts: opts.map(esc), plain: opts, ans, q });
+    const rot = (cells, sample, opts, ans) => ({ k: "spat", q: "Какая фигура — это образец, только повёрнутый (не зеркальный)?",
+      qhtml: `Какая фигура — это образец, только повёрнутый (не зеркальный)?<div class="sample">${shape(cells, sample, 0)}</div>`,
+      opts: opts.map(([r, m]) => shape(cells, r, m)), plain: opts.map((_, i) => "вариант " + (i + 1)), ans, grid: "shapes" });
+
+    const V = [
+      txt("verb", "Книга : читатель = картина : ?", ["зритель", "художник", "рама", "музей"], 0),
+      txt("verb", "Какое слово лишнее?", ["берёза", "дуб", "ромашка", "клён"], 2),
+      txt("verb", "Слово, близкое по смыслу к «эфемерный»", ["недолговечный", "воздушный", "прозрачный", "вечный"], 0),
+      txt("verb", "Горячий : холодный = щедрый : ?", ["бедный", "скупой", "добрый", "богатый"], 1),
+      txt("verb", "Какое слово лишнее?", ["скрипка", "виолончель", "флейта", "альт"], 2),
+      txt("verb", "Противоположное по смыслу к «конкретный»", ["точный", "абстрактный", "ясный", "простой"], 1),
+      txt("verb", "Врач : больница = учитель : ?", ["ученик", "урок", "школа", "учебник"], 2),
+      txt("verb", "Слово «дефицит» означает…", ["избыток", "долг", "ошибку", "недостаток"], 3)
+    ];
+    const N = [
+      txt("num", "Продолжите ряд: 2, 6, 12, 20, 30, ?", ["40", "42", "44", "36"], 1),
+      txt("num", "Товар стоил 800 ₽ и подешевел на 25%. Сколько он стоит теперь?", ["550 ₽", "575 ₽", "600 ₽", "640 ₽"], 2),
+      txt("num", "3 мастера делают работу за 12 дней. За сколько дней сделают 4 мастера?", ["8", "9", "10", "16"], 1),
+      txt("num", "Продолжите ряд: 81, 27, 9, 3, ?", ["0", "1", "2", "1/3"], 1),
+      txt("num", "В классе 30 учеников, 40% из них мальчики. Сколько девочек?", ["12", "16", "18", "20"], 2),
+      txt("num", "Продолжите ряд: 1, 1, 2, 3, 5, 8, ?", ["11", "12", "13", "14"], 2),
+      txt("num", "Поезд прошёл 240 км за 3 часа. Сколько он пройдёт за 5 часов с той же скоростью?", ["360 км", "380 км", "400 км", "420 км"], 2),
+      txt("num", "Сумма трёх идущих подряд чисел равна 48. Чему равно наибольшее из них?", ["15", "16", "17", "18"], 2)
+    ];
+    const L = [
+      txt("log", "Все розы — цветы. Некоторые цветы быстро вянут. Следует ли отсюда, что некоторые розы быстро вянут?", ["Да, обязательно", "Нет, это не следует", "Нет, розы не вянут", "Да, все розы вянут"], 1),
+      txt("log", "Продолжите ряд: А, В, Д, Ж, ?", ["З", "И", "К", "Е"], 1),
+      txt("log", "Аня выше Бори, Боря выше Вити. Кто ниже всех?", ["Аня", "Боря", "Витя", "нельзя определить"], 2),
+      txt("log", "Продолжите ряд: 3, 5, 9, 17, 33, ?", ["49", "57", "65", "66"], 2),
+      txt("log", "Сегодня среда. Какой день недели будет через 10 дней?", ["пятница", "суббота", "воскресенье", "четверг"], 1),
+      txt("log", "Если КОТ шифруется как ЛПУ, то как зашифровать ДОМ?", ["ЕПН", "ГНЛ", "ЕПМ", "ДПН"], 0),
+      txt("log", "Продолжите ряд: 2, 3, 5, 7, 11, ?", ["12", "13", "14", "15"], 1),
+      txt("log", "Каждый, кто играет в шахматы, умеет считать. Петя не умеет считать. Значит…", ["Петя играет в шахматы", "Петя не играет в шахматы", "Петя учится", "ничего сказать нельзя"], 1)
+    ];
+    const SP = [
+      rot([[1, 0], [2, 0], [0, 1], [1, 1], [1, 2]], 0, [[90, 1], [180, 0], [0, 1], [270, 1]], 1),
+      rot([[0, 0], [0, 1], [0, 2], [0, 3], [1, 3]], 0, [[90, 0], [90, 1], [180, 1], [0, 1]], 0),
+      rot([[1, 0], [1, 1], [1, 2], [0, 2], [0, 3]], 90, [[180, 1], [270, 1], [270, 0], [0, 1]], 2),
+      rot([[0, 0], [1, 0], [0, 1], [1, 1], [0, 2]], 0, [[0, 1], [90, 1], [180, 1], [90, 0]], 3),
+      rot([[1, 0], [0, 1], [1, 1], [1, 2], [1, 3]], 0, [[270, 0], [180, 1], [90, 1], [0, 1]], 0),
+      rot([[0, 0], [1, 0], [2, 0], [2, 1], [2, 2], [3, 2], [0, 1]], 0, [[90, 1], [0, 1], [180, 1], [180, 0]], 3)
+    ];
+    const items = interleave({ verb: V, num: N, log: L, spat: SP }, ["verb", "num", "log", "spat"]);
+    const K = {
+      verb: { n: "Вербальные", d: "понимание слов, аналогии, смысл", jobs: "журналистика, право, филология, преподавание, PR, перевод" },
+      num: { n: "Числовые", d: "расчёты, проценты, числовые закономерности", jobs: "экономика, финансы, инженерия, аналитика данных" },
+      log: { n: "Логические", d: "выводы из условий, последовательности", jobs: "программирование, наука, юриспруденция, аналитика" },
+      spat: { n: "Пространственные", d: "мысленное вращение фигур", jobs: "архитектура, инженерия, дизайн, хирургия, пилотирование" }
+    };
+    const ORDER = ["verb", "num", "log", "spat"];
+    TESTS.push({
+      id: "abil", group: "Природные способности", title: "Способности",
+      method: "Четыре субтеста по образцу батарей способностей (DAT, Morrisby); задания составлены для приложения", orig: false,
+      covers: "Morrisby Profile, Differential Aptitude Tests (DAT)",
+      what: "Задачи с правильными ответами: слова, числа, логика и пространственное мышление.",
+      mins: 15, kind: "choice", prompt: "Выберите ответ", items,
+      compute(a) {
+        const ok = {}, tot = {};
+        items.forEach((it, i) => { tot[it.k] = (tot[it.k] || 0) + 1; ok[it.k] = (ok[it.k] || 0) + (a[i] === it.ans ? 1 : 0); });
+        const p = {}; ORDER.forEach(k => p[k] = Math.round(ok[k] / tot[k] * 100));
+        return { ok, tot, p, top: rankKeys(p, ORDER), wrong: items.map((it, i) => a[i] === it.ans ? null : i).filter(i => i != null), a };
+      },
+      brief: r => ORDER.map(k => `${K[k].n.toLowerCase()} ${r.p[k]}%`).join(" · "),
+      text: r => ORDER.map(k => `  ${K[k].n}: ${r.ok[k]} из ${r.tot[k]} (${r.p[k]}%)`).join("\n"),
+      view(r) {
+        const lvl = p => p >= 75 ? "высокий" : p >= 50 ? "средний" : "ниже среднего";
+        const best = r.top.filter(k => r.p[k] >= 75);
+        return `
+          ${panel(`<div class="bars">${ORDER.map(k => bar(K[k].n, r.p[k], 100, "var(--accent)", `${r.ok[k]}/${r.tot[k]}`)).join("")}</div>
+            <p class="note">75% и выше: высокий результат, 50–74%: средний.</p>`)}
+          ${(best.length ? best : r.top.slice(0, 1)).map(k => card(`${K[k].n.toUpperCase()} · ${r.p[k]}% · ${lvl(r.p[k]).toUpperCase()}`, `${K[k].n} способности`,
+            `<p>${K[k].d[0].toUpperCase() + K[k].d.slice(1)}.</p><p class="muted">Где особенно нужны: ${K[k].jobs}.</p>`)).join("")}
+          ${r.wrong.length ? `<details class="panel"><summary>Разбор ошибок (${r.wrong.length})</summary><ul class="tips">${r.wrong.filter(i => items[i].k !== "spat").map(i => `<li>${esc(items[i].q)}<br><span class="muted">Верно: <b>${esc(items[i].plain[items[i].ans])}</b></span></li>`).join("")}${r.wrong.some(i => items[i].k === "spat") ? `<li>В задачах с фигурами верный вариант можно получить поворотом образца; остальные варианты зеркальные.</li>` : ""}</ul></details>` : ""}
+          <p class="note">Morrisby и DAT платные: в них задания ограничены по времени, а результат сравнивается с нормами сверстников. Здесь короткая открытая версия без таймера и без норм. Она показывает, какие задачи даются легче, но не измеряет способности точно.</p>`;
+      }
+    });
+  })();
+
+  // ---------- CAAS-International: 24 items, 4 scales × 6 (Savickas & Porfeli, 2012), 1..5 ----------
+  (function () {
+    const G = {
+      con: ["Думать о том, каким будет моё будущее", "Понимать, что сегодняшний выбор определяет моё будущее", "Готовиться к будущему", "Осознавать, какой выбор в учёбе и профессии мне предстоит сделать", "Планировать, как достичь своих целей", "Всерьёз задумываться о своей карьере"],
+      ctl: ["Сохранять бодрость духа", "Самостоятельно принимать решения", "Отвечать за свои поступки", "Отстаивать свои убеждения", "Рассчитывать на себя", "Делать то, что правильно для меня"],
+      cur: ["Исследовать то, что меня окружает", "Искать возможности для личного роста", "Изучать варианты, прежде чем сделать выбор", "Замечать разные способы делать одно и то же", "Глубоко разбираться в вопросах, которые у меня возникают", "Интересоваться новыми возможностями"],
+      cnf: ["Выполнять задачи эффективно", "Стараться делать всё хорошо", "Осваивать новые навыки", "Работать в полную силу своих возможностей", "Преодолевать препятствия", "Решать проблемы"]
+    };
+    const ORDER = ["con", "ctl", "cur", "cnf"];
+    const K = {
+      con: { n: "Забота о будущем", q: "Думаю ли я о своём будущем?", tip: "составить карту целей на 1, 3 и 5 лет; поговорить с людьми, которые уже работают в интересной сфере" },
+      ctl: { n: "Контроль", q: "Чьё это будущее?", tip: "чаще самостоятельно принимать небольшие решения и отвечать за них; вести дневник решений" },
+      cur: { n: "Любознательность", q: "Что я хочу делать?", tip: "дни открытых дверей, профпробы, стажировки, разговоры с профессионалами" },
+      cnf: { n: "Уверенность", q: "Смогу ли я это сделать?", tip: "браться за посильные задачи и доводить их до конца; замечать свои успехи" }
+    };
+    const items = interleave(G, ORDER).map(it => it);
+    // CAAS-International lists items scale by scale, not interleaved.
+    items.sort((x, y) => ORDER.indexOf(x.k) - ORDER.indexOf(y.k));
+    TESTS.push({
+      id: "caas", group: "Готовность к переменам", title: "Карьерная адаптивность",
+      method: "Career Adapt-Abilities Scale, международная версия, 24 вопроса (М. Савикас, Э. Порфели)", orig: true,
+      covers: "Career Adapt-Abilities Scale (CAAS)",
+      what: "Насколько развиты четыре ресурса, которые помогают справляться с выбором и переменами в карьере.",
+      mins: 5, kind: "likert", prompt: "Насколько у вас развита эта способность?",
+      scale: ["Совсем не развита", "Слабо развита", "Средне", "Хорошо развита", "Очень хорошо развита"], items,
+      compute(a) { const sc = sums(items, a); const total = ORDER.reduce((t, k) => t + sc[k], 0); return { sc, total, top: rankKeys(sc, ORDER) }; },
+      brief: r => `Средний балл ${(r.total / 24).toFixed(1)} из 5; сильнее всего: ${K[r.top[0]].n.toLowerCase()}`,
+      text: r => `  Всего ${r.total} из 120; ` + ORDER.map(k => `${K[k].n} ${(r.sc[k] / 6).toFixed(1)}`).join(", "),
+      view(r) {
+        const weak = ORDER.filter(k => r.sc[k] / 6 < 3.5);
+        return `
+          ${panel(`<p class="eyebrow">Общий балл</p><h2>${r.total} из 120 · в среднем ${(r.total / 24).toFixed(1)}</h2>
+            <div class="bars">${ORDER.map(k => bar(K[k].n, r.sc[k] / 6 - 1, 4, "var(--accent)", (r.sc[k] / 6).toFixed(1))).join("")}</div>
+            <p class="note">Средний балл по шкале от 1 до 5. У взрослых в международных выборках средние значения обычно около 3,7–4,0.</p>`)}
+          ${panel(`<h2>Четыре ресурса</h2><dl>${ORDER.map(k => `<div><dt>${K[k].n} · ${(r.sc[k] / 6).toFixed(1)}</dt><dd>${K[k].q}</dd></div>`).join("")}</dl>`)}
+          ${weak.length ? panel(`<h2>Что можно развить</h2><ul class="tips">${weak.map(k => `<li><b>${K[k].n}:</b> ${K[k].tip}</li>`).join("")}</ul>`) : panel(`<h2>Все ресурсы развиты хорошо</h2><p>Средний балл по каждой шкале 3,5 и выше. Это хорошая основа, чтобы спокойно выбирать и при необходимости менять путь.</p>`)}
+          <p class="note">CAAS свободно используется в исследованиях. Перевод формулировок на русский выполнен для приложения.</p>`;
+      }
+    });
+  })();
+
+  // ---------- Career decision self-efficacy: 5 scales × 5 own items (model of Taylor & Betz), 1..5 ----------
+  (function () {
+    const G = {
+      self: ["Точно назвать свои сильные стороны", "Понять, какие занятия мне по-настоящему интересны", "Определить, что для меня важнее всего в работе", "Честно оценить свои способности", "Понять, какой образ жизни я хочу вести"],
+      info: ["Найти информацию о профессиях, которые меня интересуют", "Узнать, какие вузы и колледжи готовят по нужной специальности", "Выяснить, сколько зарабатывают в выбранной профессии", "Поговорить с человеком, который работает в интересующей меня сфере", "Узнать, какие профессии будут востребованы через 5–10 лет"],
+      goal: ["Выбрать одну профессию из нескольких вариантов", "Выбрать направление обучения после школы", "Принять решение, не оглядываясь на чужое мнение", "Определиться с профессией, даже если выбор кажется трудным", "Выбрать профессию, которая подходит под мои интересы и способности"],
+      plan: ["Составить план подготовки к поступлению", "Определить, какие экзамены мне нужно сдавать", "Наметить шаги на ближайший год, чтобы приблизиться к цели", "Подготовить портфолио или достижения для поступления", "Найти способ попробовать профессию на практике"],
+      prob: ["Найти запасной вариант, если не получится поступить", "Справиться с неудачей на экзамене и не сдаться", "Сменить направление, если пойму, что выбор не мой", "Продолжать идти к цели, даже если близкие сомневаются", "Найти выход, если выбранный путь окажется сложнее, чем казалось"]
+    };
+    const ORDER = ["self", "info", "goal", "plan", "prob"];
+    const K = {
+      self: { n: "Самопознание", tip: "пройти тесты интересов, сильных сторон и ценностей в этом приложении и обсудить их с близкими" },
+      info: { n: "Поиск информации", tip: "выписать 3–5 профессий и для каждой найти: где учат, какие экзамены, сколько платят, как выглядит рабочий день" },
+      goal: { n: "Выбор цели", tip: "сравнить 2–3 варианта по таблице «интересно, получается, есть спрос, подходит образ жизни»" },
+      plan: { n: "Планирование", tip: "расписать по месяцам подготовку к экзаменам и даты олимпиад, дней открытых дверей, приёма документов" },
+      prob: { n: "Решение проблем", tip: "заранее продумать план Б и В: другой вуз, колледж, платное отделение, год подготовки" }
+    };
+    const items = interleave(G, ORDER);
+    TESTS.push({
+      id: "cdse", group: "Готовность выбрать профессию", title: "Уверенность в выборе",
+      method: "Пять шкал самоэффективности в выборе карьеры по модели К. Тейлор и Н. Бетц; вопросы составлены для приложения", orig: false,
+      covers: "Career Decision Self-Efficacy Scale (CDSE)",
+      what: "Насколько вы уверены, что справитесь со всеми шагами выбора профессии.",
+      mins: 5, kind: "likert", prompt: "Насколько вы уверены, что сможете…",
+      scale: ["Совсем не уверен(а)", "Скорее не уверен(а)", "Отчасти уверен(а)", "Скорее уверен(а)", "Полностью уверен(а)"], items,
+      compute(a) { const sc = sums(items, a); const total = ORDER.reduce((t, k) => t + sc[k], 0); return { sc, total, top: rankKeys(sc, ORDER) }; },
+      brief: r => `Уверенность ${(r.total / 25).toFixed(1)} из 5; слабее всего: ${K[r.top[4]].n.toLowerCase()}`,
+      text: r => `  Всего ${r.total} из 125; ` + ORDER.map(k => `${K[k].n} ${(r.sc[k] / 5).toFixed(1)}`).join(", "),
+      view(r) {
+        const avg = r.total / 25;
+        const verdict = avg >= 4 ? "Высокая уверенность: можно смело переходить к конкретному плану." : avg >= 3 ? "Средняя уверенность: часть шагов понятна, часть пока пугает. Это нормально для выпускника." : "Пока мало уверенности. Помогут маленькие конкретные шаги и поддержка взрослых.";
+        const weak = r.top.slice().reverse().filter(k => r.sc[k] / 5 < 3.5).slice(0, 3);
+        return `
+          ${panel(`<p class="eyebrow">Общая уверенность</p><h2>${avg.toFixed(1)} из 5</h2><p>${verdict}</p>
+            <div class="bars">${ORDER.map(k => bar(K[k].n, r.sc[k] / 5 - 1, 4, "var(--accent)", (r.sc[k] / 5).toFixed(1))).join("")}</div>`)}
+          ${weak.length ? panel(`<h2>С чего начать</h2><ul class="tips">${weak.map(k => `<li><b>${K[k].n}:</b> ${K[k].tip}</li>`).join("")}</ul>`) : ""}
+          <p class="note">Оригинальная CDSE (Taylor & Betz) платная. Здесь открытая версия по той же модели из пяти шагов выбора, без норм.</p>`;
+      }
+    });
+  })();
+
+  // ---------- app ----------
+  const GROUPS = ["Профессиональные интересы", "Природные способности", "Сильные стороны", "Профессиональная личность", "Карьерные ориентиры", "Комфортная рабочая среда", "Готовность к переменам", "Готовность выбрать профессию"];
+  const BYID = {}; TESTS.forEach(t => BYID[t.id] = t);
+  const KEY = "kompas-v2", OLD_KEY = "onet-ip60-v1";
   const $ = id => document.getElementById(id);
   const tg = window.Telegram && window.Telegram.WebApp;
   if (tg) { try { tg.ready(); tg.expand(); } catch (e) {} }
   const haptic = () => { try { tg && tg.HapticFeedback && tg.HapticFeedback.selectionChanged(); } catch (e) {} };
 
-  let state = { name: "", answers: Array(60).fill(null), idx: 0 };
+  let state = { name: "", t: {} };
+  let cur = null, locked = false;
 
   function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
   function load() {
     try {
       const s = JSON.parse(localStorage.getItem(KEY) || "null");
-      if (s && Array.isArray(s.answers) && s.answers.length === 60) return s;
+      if (s && s.t) return s;
+      const old = JSON.parse(localStorage.getItem(OLD_KEY) || "null");
+      if (old && Array.isArray(old.answers)) return { name: old.name || "", t: { onet: { a: old.answers, i: old.idx || 0 } } };
     } catch (e) {}
     return null;
   }
-
-  function show(id) {
-    ["start", "quiz", "results"].forEach(s => { $(s).hidden = s !== id; });
-    window.scrollTo(0, 0);
+  function st(id) {
+    const n = BYID[id].items.length;
+    let s = state.t[id];
+    if (!s || !Array.isArray(s.a) || s.a.length !== n) s = state.t[id] = { a: Array(n).fill(null), i: 0 };
+    return s;
   }
+  const answered = id => st(id).a.filter(v => v != null).length;
+  const isDone = id => answered(id) === BYID[id].items.length;
 
-  function scores(answers) {
-    const sc = { R: 0, I: 0, A: 0, S: 0, E: 0, C: 0 };
-    answers.forEach((v, i) => { if (v != null) sc[QUESTIONS[i].t] += v; });
-    return sc;
+  function show(id) { ["home", "quiz", "result"].forEach(s => { $(s).hidden = s !== id; }); window.scrollTo(0, 0); }
+  function toast(msg) {
+    const d = document.createElement("div"); d.className = "toast"; d.textContent = msg; d.setAttribute("role", "status");
+    document.body.appendChild(d); setTimeout(() => d.remove(), 1800);
   }
+  function copy(txt, fallbackEl) {
+    const fb = () => { fallbackEl.value = txt; fallbackEl.hidden = false; fallbackEl.focus(); fallbackEl.select(); };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(() => toast("Скопировано"), fb);
+    else fb();
+  }
+  const resultText = t => `${t.title} (${t.covers})\n${t.text(t.compute(st(t.id).a))}`;
 
-  // Hexagon in Holland's order R-I-A-S-E-C, scores 0..40.
-  function drawHex(svg, sc) {
-    const cx = 180, cy = 165, r = 118, NS = "http://www.w3.org/2000/svg";
-    const pt = (k, f) => { const a = -Math.PI / 2 + k * Math.PI / 3; return [cx + Math.cos(a) * r * f, cy + Math.sin(a) * r * f]; };
-    let h = "";
-    [0.25, 0.5, 0.75, 1].forEach(f => {
-      h += `<polygon points="${ORDER.map((_, k) => pt(k, f).join(",")).join(" ")}" fill="none" stroke="var(--line)" stroke-width="1"/>`;
+  // ---------- home ----------
+  function renderHome() {
+    const done = TESTS.filter(t => isDone(t.id));
+    const who = state.name ? esc(state.name) : "";
+    $("home").innerHTML = `
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <span class="eyebrow">${TESTS.length} тестов для профориентации выпускника</span>
+        <h1>Компас интересов</h1>
+        <p class="muted">Интересы, способности, сильные стороны, личность, ценности и готовность к выбору. Каждый тест проходится отдельно, в любом порядке. Ответы сохраняются на этом устройстве.</p>
+      </div>
+      <div class="panel">
+        <label class="field" for="nameInput">Как зовут участника (необязательно)
+          <input type="text" id="nameInput" maxlength="40" placeholder="Например, Аня" autocomplete="off" value="${who}">
+        </label>
+        <p class="note">Начать лучше с профиля интересов RIASEC: он основной, остальные тесты уточняют картину.</p>
+      </div>
+      ${done.length ? `<div class="panel">
+        <div class="top" style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><h2>Сводка${who ? " · " + who : ""}</h2><span class="badge">пройдено ${done.length} из ${TESTS.length}</span></div>
+        <dl>${done.map(t => `<div><dt>${t.title}</dt><dd>${t.brief(t.compute(st(t.id).a))}</dd></div>`).join("")}</dl>
+        <button class="btn" type="button" id="copyAll">Скопировать все результаты</button>
+        <textarea class="copyfallback" id="copyAllFb" readonly hidden></textarea>
+      </div>` : ""}
+      ${GROUPS.map(g => {
+        const ts = TESTS.filter(t => t.group === g);
+        if (!ts.length) return "";
+        return `<div class="group"><span class="eyebrow">${g}</span>${ts.map(testCard).join("")}</div>`;
+      }).join("")}
+      <p class="note">Тесты не заменяют консультацию профориентолога и не ставят диагнозов. Платные методики (Strong, Morrisby, CliftonStrengths, Hogan, MBTI, Birkman, DAT, CDSE, SHL) защищены авторским правом, поэтому вместо них здесь открытые научные аналоги или версии, составленные по их моделям. Где написано «Оригинальная методика», используются опубликованные вопросы в переводе.</p>`;
+    $("nameInput").addEventListener("input", e => { state.name = e.target.value.trim(); save(); });
+    const ca = $("copyAll");
+    if (ca) ca.addEventListener("click", () => {
+      const head = `Компас интересов${state.name ? ": " + state.name : ""}`;
+      copy([head, ...done.map(resultText)].join("\n\n"), $("copyAllFb"));
     });
-    ORDER.forEach((_, k) => { const [x, y] = pt(k, 1); h += `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="var(--line)"/>`; });
-    [10, 20, 30, 40].forEach(v => { const [x, y] = pt(0, v / 40); h += `<text x="${x + 4}" y="${y + 4}" class="lbl" style="font-size:9px">${v}</text>`; });
-    const poly = ORDER.map((t, k) => pt(k, Math.max(sc[t], 0.5) / 40).join(",")).join(" ");
-    h += `<polygon points="${poly}" fill="var(--accent)" fill-opacity=".18" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round"/>`;
-    ORDER.forEach((t, k) => {
-      const [x, y] = pt(k, Math.max(sc[t], 0.5) / 40);
-      h += `<circle cx="${x}" cy="${y}" r="4.5" fill="var(--${t})"/>`;
-      const [lx, ly] = pt(k, 1.17);
-      const anchor = Math.abs(lx - cx) < 5 ? "middle" : (lx > cx ? "start" : "end");
-      h += `<text x="${lx}" y="${ly}" text-anchor="${anchor}" fill="var(--${t})">${t}</text>`;
-      h += `<text x="${lx}" y="${ly + 14}" text-anchor="${anchor}" class="lbl">${TYPES[t].nick} · ${sc[t]}</text>`;
-    });
-    svg.innerHTML = h;
   }
 
-  function legend(el) {
-    el.innerHTML = ORDER.map(t => `<span><b style="color:var(--${t})">${t}</b>${TYPES[t].name}</span>`).join("");
+  function testCard(t) {
+    const n = t.items.length, k = answered(t.id), done = k === n;
+    const status = done ? `<p class="status done">Пройден: ${t.brief(t.compute(st(t.id).a))}</p>` : k ? `<p class="status">Отвечено <b>${k} из ${n}</b></p>` : "";
+    const btns = done
+      ? `<button class="btn primary small" data-act="result" data-id="${t.id}" type="button">Результат</button><button class="btn small" data-act="restart" data-id="${t.id}" type="button">Пройти заново</button>`
+      : `<button class="btn primary small" data-act="${k ? "resume" : "start"}" data-id="${t.id}" type="button">${k ? "Продолжить" : "Начать"}</button>${k ? `<button class="btn small" data-act="restart" data-id="${t.id}" type="button">Сначала</button>` : ""}`;
+    return `<div class="panel test">
+      <div class="top"><h2>${t.title}</h2><span class="badge ${t.orig ? "orig" : ""}">${t.orig ? "Оригинальная методика" : "Открытый аналог"}</span></div>
+      <p>${t.what}</p>
+      <p class="note">${t.orig ? "Методика" : "Основа"}: ${t.method}.<br>${t.orig ? "Покрывает" : "Вместо"}: ${t.covers}.</p>
+      <p class="note">${n} ${n % 10 === 1 && n % 100 !== 11 ? "вопрос" : (n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14)) ? "вопроса" : "вопросов"} · около ${t.mins} мин</p>
+      ${status}
+      <div class="row">${btns}</div>
+    </div>`;
   }
+
+  $("home").addEventListener("click", e => {
+    const b = e.target.closest("[data-act]");
+    if (!b) return;
+    const id = b.dataset.id, act = b.dataset.act;
+    if (act === "result") return openResult(id);
+    if (act === "restart") state.t[id] = null;
+    const s = st(id);
+    if (act !== "resume") s.i = 0; else s.i = Math.max(0, s.a.indexOf(null));
+    save(); cur = id; renderQuestion(); show("quiz");
+  });
 
   // ---------- quiz ----------
   function renderQuestion() {
-    const i = state.idx, q = QUESTIONS[i];
-    $("counter").textContent = `${i + 1} из 60`;
-    $("bar").style.width = `${(state.answers.filter(a => a != null).length / 60) * 100}%`;
-    $("qtext").textContent = q.text;
-    const box = $("answers");
-    box.innerHTML = "";
-    SCALE.slice().reverse().forEach(s => {
-      const b = document.createElement("button");
-      b.type = "button"; b.className = "btn ans"; b.id = `ans-${s.v}`;
-      b.setAttribute("aria-pressed", String(state.answers[i] === s.v));
-      b.innerHTML = `<span class="dots" aria-hidden="true">${[0,1,2,3,4].map(d => `<i class="${d <= s.v ? "on" : ""}"></i>`).join("")}</span><span>${s.label}</span><span class="kbd">${s.v + 1}</span>`;
-      b.addEventListener("click", () => answer(s.v));
-      box.appendChild(b);
-    });
+    const t = BYID[cur], s = st(cur), i = s.i, it = t.items[i], n = t.items.length;
+    $("counter").textContent = `${i + 1} из ${n}`;
+    $("bar").style.width = `${answered(cur) / n * 100}%`;
+    $("prompt").textContent = `${t.title} · ${t.prompt}`;
+    const pressed = v => `aria-pressed="${s.a[i] === v}"`;
+    let h = "";
+    if (t.kind === "likert") {
+      h = `<div class="qtext">${esc(it.text)}</div><div class="answers" role="group" aria-label="Варианты ответа">` +
+        [4, 3, 2, 1, 0].map(v => `<button type="button" class="btn ans" data-v="${v}" ${pressed(v)}><span class="dots" aria-hidden="true">${[0, 1, 2, 3, 4].map(d => `<i class="${d <= v ? "on" : ""}"></i>`).join("")}</span><span>${t.scale[v]}</span><span class="kbd">${v + 1}</span></button>`).join("") + `</div>`;
+    } else if (t.kind === "bipolar") {
+      h = `<div class="bip"><div><b>А</b><span>${esc(it.a)}</span></div><div><b>Б</b><span>${esc(it.b)}</span></div></div><div class="answers" role="group" aria-label="Варианты ответа">` +
+        [0, 1, 2, 3, 4].map(v => `<button type="button" class="btn ans" data-v="${v}" ${pressed(v)}><span>${t.scale[v]}</span><span class="kbd">${v + 1}</span></button>`).join("") + `</div>`;
+    } else {
+      h = `<div class="qtext sm">${it.qhtml}</div><div class="opts ${it.grid || ""}" role="group" aria-label="Варианты ответа">` +
+        it.opts.map((o, v) => `<button type="button" class="btn" data-v="${v}" ${pressed(v)} aria-label="${it.grid ? "Вариант " + (v + 1) : esc(it.plain[v])}">${o}</button>`).join("") + `</div>`;
+    }
+    $("qbody").innerHTML = h;
   }
 
-  let locked = false;
+  $("qbody").addEventListener("click", e => { const b = e.target.closest("[data-v]"); if (b) answer(+b.dataset.v); });
+
   function answer(v) {
     if (locked) return;
     haptic();
-    state.answers[state.idx] = v;
-    save();
-    [...$("answers").children].forEach(b => b.setAttribute("aria-pressed", String(b.id === `ans-${v}`)));
+    const t = BYID[cur], s = st(cur);
+    s.a[s.i] = v; save();
+    $("qbody").querySelectorAll("[data-v]").forEach(b => b.setAttribute("aria-pressed", String(+b.dataset.v === v)));
     locked = true;
     setTimeout(() => {
       locked = false;
-      const next = state.answers.findIndex((a, k) => a == null && k > state.idx);
-      const firstEmpty = state.answers.indexOf(null);
-      if (firstEmpty === -1) { renderResults(); show("results"); return; }
-      state.idx = next !== -1 ? next : firstEmpty;
-      save();
+      const next = s.a.findIndex((x, k) => x == null && k > s.i);
+      const first = s.a.indexOf(null);
+      if (first === -1) { save(); openResult(cur); return; }
+      s.i = next !== -1 ? next : first; save();
       renderQuestion();
     }, 180);
   }
 
   $("backBtn").addEventListener("click", () => {
-    if (state.idx === 0) { initStart(); show("start"); return; }
-    state.idx--; save(); renderQuestion();
+    const s = st(cur);
+    if (s.i === 0) { renderHome(); show("home"); return; }
+    s.i--; save(); renderQuestion();
   });
+  $("homeBtn").addEventListener("click", () => { renderHome(); show("home"); });
 
   document.addEventListener("keydown", e => {
-    if ($("quiz").hidden) return;
-    const n = parseInt(e.key, 10);
-    if (n >= 1 && n <= 5) answer(n - 1);
+    if ($("quiz").hidden || e.target.tagName === "INPUT") return;
+    const t = BYID[cur], n = parseInt(e.key, 10), max = t.kind === "choice" ? t.items[st(cur).i].opts.length : 5;
+    if (n >= 1 && n <= max) answer(n - 1);
     if (e.key === "Backspace" || e.key === "ArrowLeft") $("backBtn").click();
   });
 
-  // ---------- results ----------
-  function rank(sc) { return ORDER.slice().sort((a, b) => sc[b] - sc[a] || ORDER.indexOf(a) - ORDER.indexOf(b)); }
-
-  function summaryText(sc, top) {
-    const who = state.name ? `${state.name}: ` : "";
-    const lines = [`${who}Компас интересов (O*NET Interest Profiler, 60 вопросов)`, `Код Холланда: ${top.slice(0, 3).join("")}`, ""];
-    rank(sc).forEach(t => lines.push(`${t} ${TYPES[t].name} (${TYPES[t].nick}): ${sc[t]} из 40`));
-    lines.push("", "Профессии по ведущим интересам:");
-    top.slice(0, 3).forEach(t => lines.push(`${TYPES[t].nick}: ${TYPES[t].jobs.slice(0, 8).join(", ")}`));
-    return lines.join("\n");
-  }
-
-  function renderResults() {
-    const sc = scores(state.answers);
-    const top = rank(sc);
-    const max = sc[top[0]], min = sc[top[5]];
-    const pairKey = [top[0], top[1]].sort((a, b) => ORDER.indexOf(a) - ORDER.indexOf(b)).join("");
-    const el = $("results");
-
-    let profileNote = "";
-    if (max <= 12) profileNote = "Все баллы невысокие. Так бывает, когда интересы ещё формируются или большинство занятий пока незнакомы. Это нормально: стоит пробовать новое и пройти тест ещё раз через полгода–год.";
-    else if (max - min <= 6) profileNote = "Профиль ровный: интерес примерно одинаков ко многим областям. Это даёт широкий выбор. Помогут пробы в разных кружках и разговоры о том, что увлекает сильнее всего.";
-    else if (sc[top[0]] - sc[top[1]] >= 8) profileNote = `Ярко выражен один ведущий интерес: ${TYPES[top[0]].name.toLowerCase()} тип заметно опережает остальные.`;
-
-    el.innerHTML = `
-      <div style="display:flex;flex-direction:column;gap:10px">
+  // ---------- result ----------
+  function openResult(id) {
+    cur = id;
+    const t = BYID[id], r = t.compute(st(id).a);
+    $("result").innerHTML = `
+      <div class="qhead"><button class="btn ghost" type="button" id="resHome">← К тестам</button></div>
+      <div style="display:flex;flex-direction:column;gap:8px">
         <span class="eyebrow">Результат${state.name ? " · " + esc(state.name) : ""}</span>
-        <h1>Код Холланда</h1>
-        <div class="code">${top.slice(0, 3).map(t => `<span style="background:var(--${t})">${t}</span>`).join("")}</div>
-        <p class="muted">Три самых сильных интереса: ${top.slice(0, 3).map(t => `<b style="color:var(--${t})">${TYPES[t].nick.toLowerCase()}</b>`).join(", ")}. Первая буква весит больше всего.</p>
+        <h1>${t.title}</h1>
+        <p class="note">${t.method}</p>
       </div>
-
-      <div class="panel">
-        <svg class="hex" id="hexRes" viewBox="0 0 360 330" role="img" aria-label="Профиль интересов на шестиугольнике Холланда"></svg>
-        <div class="bars">
-          ${top.map(t => `<div class="bar"><span><b style="color:var(--${t})">${t}</b> ${TYPES[t].nick}</span><span class="track"><i style="width:${sc[t] / 40 * 100}%;background:var(--${t})"></i></span><span class="num">${sc[t]}</span></div>`).join("")}
-        </div>
-        <p class="note">Баллы от 0 до 40 по каждой области (10 вопросов × 0–4). Соседние на шестиугольнике типы похожи, противоположные сильнее всего различаются.</p>
-        ${profileNote ? `<p>${profileNote}</p>` : ""}
-      </div>
-
-      ${top.slice(0, 3).map((t, k) => typeCard(t, sc[t], k)).join("")}
-
-      <div class="panel">
-        <h2>Сочетание ${top[0]} + ${top[1]}</h2>
-        <p>Где сходятся два ведущих интереса: <b>${PAIR_HINTS[pairKey]}</b>.</p>
-        <p class="note">Профессии на стыке двух сильных интересов обычно приносят больше удовлетворения, чем выбор по одной области.</p>
-      </div>
-
-      <div class="panel">
-        <h2>Родителям: что делать с результатом</h2>
-        <ul class="tips">
-          <li>Обсудите результат вместе. Спросите, с чем ребёнок согласен, а что удивило.</li>
-          <li>Тест измеряет интересы, а не способности. Рядом стоит оценить, что получается легко, и учесть ценности и характер.</li>
-          <li>Дайте попробовать занятия из ведущих областей: кружок, летняя школа, день на работе у знакомого специалиста.</li>
-          <li>Интересы в подростковом возрасте меняются. Повторите тест через 1–2 года и сравните.</li>
-        </ul>
-      </div>
-
-      <details class="panel">
-        <summary>Остальные области</summary>
-        ${top.slice(3).map(t => `<div style="display:flex;flex-direction:column;gap:6px"><h3 style="color:var(--${t})">${t} · ${TYPES[t].name} (${sc[t]})</h3><p class="muted">${TYPES[t].about}</p><div class="chips">${TYPES[t].jobs.slice(0, 6).map(j => `<span>${j}</span>`).join("")}</div></div>`).join("")}
-      </details>
-
+      ${t.view(r)}
       <div class="row">
-        <button class="btn primary" id="copyBtn" type="button">Скопировать результат</button>
-        <button class="btn" id="reviewBtn" type="button">Изменить ответы</button>
+        <button class="btn primary" id="resCopy" type="button">Скопировать результат</button>
+        <button class="btn" id="resEdit" type="button">Изменить ответы</button>
       </div>
-      <textarea id="copyfallback" readonly hidden></textarea>
-      <button class="btn ghost" id="restartBtn" type="button">Пройти заново</button>
-      <p class="note">Методика: O*NET Interest Profiler Short Form (60 вопросов), U.S. Department of Labor / National Center for O*NET Development, на основе теории профессиональных типов Дж. Холланда. Перевод формулировок адаптирован; российские нормы для этой версии не установлены, поэтому результат стоит читать как ориентир для разговора, а не как диагноз.</p>
-    `;
-    drawHex($("hexRes"), sc);
-
-    $("copyBtn").addEventListener("click", () => {
-      const txt = summaryText(sc, top);
-      const fb = () => { const ta = $("copyfallback"); ta.value = txt; ta.hidden = false; ta.focus(); ta.select(); };
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(txt).then(() => toast("Скопировано"), fb);
-      } else fb();
-    });
-    $("reviewBtn").addEventListener("click", () => { state.idx = 0; save(); renderQuestion(); show("quiz"); });
-    $("restartBtn").addEventListener("click", () => {
-      state = { name: state.name, answers: Array(60).fill(null), idx: 0 }; save(); initStart(); show("start");
-    });
+      <textarea class="copyfallback" id="resFb" readonly hidden></textarea>
+      <button class="btn ghost" id="resRestart" type="button">Пройти заново</button>`;
+    if (t.after) t.after(r);
+    $("resHome").addEventListener("click", () => { renderHome(); show("home"); });
+    $("resCopy").addEventListener("click", () => copy(`${state.name ? state.name + ": " : ""}${resultText(t)}`, $("resFb")));
+    $("resEdit").addEventListener("click", () => { st(id).i = 0; save(); renderQuestion(); show("quiz"); });
+    $("resRestart").addEventListener("click", () => { state.t[id] = null; st(id); save(); renderQuestion(); show("quiz"); });
+    show("result");
   }
 
-  function typeCard(t, s, k) {
-    const T = TYPES[t];
-    return `<div class="panel type-card" style="--c:var(--${t})">
-      <span class="tag">${["ВЕДУЩИЙ", "ВТОРОЙ", "ТРЕТИЙ"][k]} ИНТЕРЕС · ${t} · ${s} из 40</span>
-      <h2>${T.name} тип: «${T.nick}»</h2>
-      <p>${T.about}</p>
-      <dl>
-        <div><dt>Профессии</dt><dd><div class="chips">${T.jobs.map(j => `<span>${j}</span>`).join("")}</div></dd></div>
-        <div><dt>Школьные предметы</dt><dd>${T.subjects.join(", ")}</dd></div>
-        <div><dt>Что попробовать</dt><dd>${T.tryit}</dd></div>
-      </dl>
-    </div>`;
-  }
-
-  function esc(s) { return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
-  function toast(msg) {
-    const d = document.createElement("div"); d.className = "toast"; d.textContent = msg; d.setAttribute("role", "status");
-    document.body.appendChild(d); setTimeout(() => d.remove(), 1800);
-  }
-
-  // ---------- start ----------
-  function initStart() {
-    $("nameInput").value = state.name || "";
-    const done = state.answers.filter(a => a != null).length;
-    const rb = $("resumeBtn");
-    rb.hidden = done === 0;
-    rb.textContent = done === 60 ? "Открыть результат" : `Продолжить (${done} из 60)`;
-  }
-
-  $("startBtn").addEventListener("click", () => {
-    state = { name: $("nameInput").value.trim(), answers: Array(60).fill(null), idx: 0 };
-    save(); renderQuestion(); show("quiz");
-  });
-  $("resumeBtn").addEventListener("click", () => {
-    state.name = $("nameInput").value.trim();
-    if (state.answers.indexOf(null) === -1) { renderResults(); show("results"); return; }
-    state.idx = Math.max(0, state.answers.indexOf(null)); save(); renderQuestion(); show("quiz");
-  });
-
-  drawHex($("hexDemo"), { R: 14, I: 31, A: 36, S: 27, E: 12, C: 8 });
-  legend($("legendDemo"));
   const saved = load();
   if (saved) state = saved;
-  initStart();
+  renderHome();
+
 })();
 </script>
 </body>
